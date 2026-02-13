@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-// import { CreateGarageDialog } from "@/components/create-garage-dialog";
+import { CreateGarageDialog } from "@/components/create-garage-dialog";
 import { JoinGarageDialog } from "@/components/join-garage-dialog";
-import { mockUserGarages } from "./data";
+import { trpc } from "@/trpc/client";
 
 export default function GaragePage() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
-	const userGarages = mockUserGarages;
+
+	const userGarages = trpc.garages.listMine.useQuery();
 
 	return (
 		<SidebarProvider
@@ -47,8 +48,8 @@ export default function GaragePage() {
 
 					{/* Liste des garages */}
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{userGarages.length > 0 ? (
-							userGarages.map((garage) => (
+						{userGarages.data != null && userGarages.data.length > 0 ? (
+							userGarages.data.map((garage) => (
 								<Card
 									key={garage.id}
 									className="cursor-pointer transition-shadow hover:shadow-lg"
@@ -93,14 +94,11 @@ export default function GaragePage() {
 				</div>
 
 				{/* Modales */}
-				{/* <CreateGarageDialog
+				<CreateGarageDialog
 					open={isCreateDialogOpen}
 					onOpenChange={setIsCreateDialogOpen}
 				/>
-				<JoinGarageDialog 
-                    open={isJoinDialogOpen} 
-                    onOpenChange={setIsJoinDialogOpen} 
-                /> */}
+				<JoinGarageDialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen} />
 			</SidebarInset>
 		</SidebarProvider>
 	);

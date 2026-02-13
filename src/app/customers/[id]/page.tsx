@@ -18,7 +18,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 		notFound();
 	}
 
-	// Détermine la dernière interventionen triant les intervention par date de début (startDate) et en prenant la plus récente
+	// Détermine la dernière interventionen triant les intervention par startDate et en prenant la plus récente
 	const lastIntervention = customer.interventions.sort(
 		(a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
 	)[0];
@@ -109,9 +109,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
 						{/* Section: Véhicules */}
 						<section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm lg:rounded-xl lg:border lg:border-zinc-200 lg:p-4 lg:shadow-sm dark:border-zinc-800 lg:dark:bg-zinc-900/50">
-							<h2 className="text-lg font-semibold tracking-tight lg:text-lg">
-								Véhicules
-							</h2>
+							<div className="mb-3 flex items-center justify-between lg:mb-4">
+								<h2 className="text-lg font-semibold tracking-tight lg:text-lg">
+									Véhicules
+								</h2>
+								<VehicleSectionHeader customerId={customer.id} />
+							</div>
+
 							<div className="space-y-3 lg:space-y-4">
 								{customer.vehicles.map((vehicle, index) => (
 									<div

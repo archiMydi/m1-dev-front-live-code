@@ -1,31 +1,21 @@
 "use client";
 
-import { CreateVehicleDialog } from "@/components/create-vehicle-dialog";
 import { Button } from "@/components/ui/button";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
+import { CreateVehicleDialog } from "@/components/create-vehicle-dialog";
 
 export function VehicleSectionHeader({ customerId }: { customerId: string }) {
-	const [showCreateDialog, setShowCreateDialog] = useState(false);
+	const [open, setOpen] = useState(false);
 
 	return (
 		<>
-			<div className="mb-2 flex items-center justify-between lg:mb-4">
-				<h2 className="text-lg font-semibold tracking-tight lg:text-lg">Véhicules</h2>
-				<Button
-					variant="outline"
-					size="icon"
-					className="size-8"
-					onClick={() => setShowCreateDialog(true)}
-				>
-					<IconPlus className="size-4" />
-				</Button>
-			</div>
-			<CreateVehicleDialog
-				open={showCreateDialog}
-				onOpenChange={setShowCreateDialog}
-				defaultOwnerId={customerId}
-			/>
+			<Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setOpen(true)}>
+				<IconPlus className="h-4 w-4" />
+				<span className="sr-only">Ajouter un véhicule</span>
+			</Button>
+
+			<CreateVehicleDialog open={open} onOpenChange={setOpen} defaultOwnerId={customerId} />
 		</>
 	);
 }

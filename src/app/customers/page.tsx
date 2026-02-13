@@ -95,6 +95,7 @@ export default function Page() {
 					<div className="flex items-center justify-between">
 						<h1 className="text-2xl font-bold tracking-tight">Liste Clients</h1>
 						<Button
+							variant="outline"
 							size="sm"
 							className="gap-2"
 							onClick={() => setShowCreateDialog(true)}

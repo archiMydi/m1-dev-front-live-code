@@ -1,9 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import MissionDetails from "@/components/mission-details";
 
 export default function Page() {
 	return (
@@ -18,14 +16,9 @@ export default function Page() {
 			<AppSidebar variant="inset" />
 			<SidebarInset>
 				<SiteHeader />
-				<div
-					className="flex flex-1 flex-col"
-					style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}
-				>
-					<div className="@container/main flex flex-1 flex-col gap-2">
-						<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-							<SectionCards />
-						</div>
+				<div className="flex flex-1 flex-col p-4">
+					<div className="w-full">
+						<MissionDetails backURL={"/accounting"} />
 					</div>
 				</div>
 			</SidebarInset>

@@ -5,7 +5,6 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
@@ -49,7 +48,7 @@ export function CreateVehicleDialog({
 		// Simulation d'un appel API
 		setTimeout(() => {
 			setIsLoading(false);
-			toast.success("Véhicule créé avec succès (MOCK)");
+			toast.success("Véhicule créé avec succès (Mock)");
 			onOpenChange(false);
 			// Reset form mais garder le owner si fourni par défaut
 			setFormData({
@@ -64,15 +63,15 @@ export function CreateVehicleDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-125">
+			<DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Nouveau Véhicule</DialogTitle>
 					<DialogDescription>Ajouter un nouveau véhicule au parc.</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="grid gap-4 py-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="plate">Immatriculation</Label>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="grid grid-cols-2 gap-2">
+						<div className="space-y-2">
+							<Label htmlFor="plate">Immatriculation *</Label>
 							<Input
 								id="plate"
 								placeholder="AA-123-BB"
@@ -86,8 +85,8 @@ export function CreateVehicleDialog({
 								}
 							/>
 						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="vin">VIN</Label>
+						<div className="space-y-2">
+							<Label htmlFor="vin">VIN *</Label>
 							<Input
 								id="vin"
 								required
@@ -98,9 +97,9 @@ export function CreateVehicleDialog({
 							/>
 						</div>
 					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="brand">Marque</Label>
+					<div className="grid grid-cols-2 gap-2">
+						<div className="space-y-2">
+							<Label htmlFor="brand">Marque *</Label>
 							<Input
 								id="brand"
 								placeholder="Peugeot"
@@ -111,8 +110,8 @@ export function CreateVehicleDialog({
 								}
 							/>
 						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="model">Modèle</Label>
+						<div className="space-y-2">
+							<Label htmlFor="model">Modèle *</Label>
 							<Input
 								id="model"
 								placeholder="208"
@@ -127,8 +126,8 @@ export function CreateVehicleDialog({
 
 					{/* Sélection du propriétaire (si non pré-rempli) */}
 					{!defaultOwnerId && (
-						<div className="grid gap-2">
-							<Label htmlFor="owner">Propriétaire</Label>
+						<div className="space-y-2">
+							<Label htmlFor="owner">Propriétaire *</Label>
 							<Select
 								value={formData.ownerId}
 								onValueChange={(value) =>
@@ -149,14 +148,20 @@ export function CreateVehicleDialog({
 						</div>
 					)}
 
-					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+					<div className="flex gap-2 pt-4">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							disabled={isLoading}
+							className="flex-1"
+						>
 							Annuler
 						</Button>
-						<Button type="submit" disabled={isLoading}>
+						<Button type="submit" disabled={isLoading} className="flex-1">
 							{isLoading ? "Création..." : "Créer le véhicule"}
 						</Button>
-					</DialogFooter>
+					</div>
 				</form>
 			</DialogContent>
 		</Dialog>

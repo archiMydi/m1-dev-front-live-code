@@ -83,16 +83,16 @@
     - Export CSV
 - Garage
     - Ajouter un "onglet" /page "garage"
-        - Bouton pour créer un nouveau garage
-        - Bouton pour rejoindre un garage (modal qui demande un code d'invitation unique)
-        - Liste des garages auxquels l'utilisateur appartient (avec rôle)
+        - Bouton pour créer un nouveau garage (route ✅ `garages.create`)
+        - Bouton pour rejoindre un garage (modal qui demande un code d'invitation unique) (route ✅ `garages.joinWithInvite`)
+        - Liste des garages auxquels l'utilisateur appartient (avec rôle) (route ✅ `garages.listMine`)
     - Page de gestion du garage
         - Si admin :
             - Modifier les infos du garage (c.f. `src/db/schema/index.ts`)
-            - Bouton pour inviter un membre qui génère un code d'invitation unique
+            - Bouton pour inviter un membre qui génère un code d'invitation unique (route ✅ `garages.createInvite`)
             - (optionnel) Si le garage n'est pas utilisé (n'a aucun membre ou données liées), bouton pour supprimer le garage
-            - Liste de membres avec rôle et bouton pour expulser
+            - Liste de membres avec rôle (route ✅ `garages.members`) et bouton pour expulser (route ✅ `garages.kickMember`)
         - Sinon (mécanicien) :
-            - Voir les infos du garage
-            - Bouton pour quitter le garage
-            - Voir la liste des membres avec rôle
+            - Voir les infos du garage (route ✅ `garages.get`)
+            - Bouton pour quitter le garage (route ✅ `garages.quitGarage`)
+            - Voir la liste des membres avec rôle (route ✅ `garages.members`)

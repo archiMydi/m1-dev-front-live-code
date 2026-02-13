@@ -25,10 +25,19 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IconExternalLink, IconPlus, IconArrowsSort } from "@tabler/icons-react";
+import { IconExternalLink, IconPlus, IconArrowsSort, IconCar, IconUser } from "@tabler/icons-react";
 import { CreateVehicleDialog } from "@/components/create-vehicle-dialog";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 // 1. Derive flat vehicle list from customers
 type VehicleWithOwner = {
@@ -160,9 +169,11 @@ const columns: ColumnDef<VehicleWithOwner>[] = [
 function DataTable<TData, TValue>({
 	columns,
 	data,
+	onAddClick,
 }: {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	onAddClick: () => void;
 }) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -183,25 +194,36 @@ function DataTable<TData, TValue>({
 
 	return (
 		<div className="flex flex-col gap-4">
+			{/* Table Header with Title & Filters */}
+			<div className="flex items-center justify-between">
+				<h2 className="text-lg font-semibold tracking-tight">Liste Véhicules</h2>
+				<Button variant="outline" size="sm" className="gap-2" onClick={onAddClick}>
+					<IconPlus className="size-4" />
+					<span className="hidden sm:inline">Nouveau véhicule</span>
+				</Button>
+			</div>
+
 			<div className="flex flex-col gap-4 sm:flex-row">
 				<Input
-					placeholder="Filtrer par immatriculation..."
+					placeholder="Filtrer par immatriculation"
 					value={(table.getColumn("plate")?.getFilterValue() as string) ?? ""}
 					onChange={(event) =>
 						table.getColumn("plate")?.setFilterValue(event.target.value)
 					}
-					className="max-w-sm"
+					className="max-w-52.5"
 				/>
 				<Input
-					placeholder="Filtrer par propriétaire..."
+					placeholder="Filtrer par propriétaire"
 					value={(table.getColumn("ownerName")?.getFilterValue() as string) ?? ""}
 					onChange={(event) =>
 						table.getColumn("ownerName")?.setFilterValue(event.target.value)
 					}
-					className="max-w-sm"
+					className="max-w-52.5"
 				/>
 			</div>
-			<div className="rounded-md border">
+
+			{/* Desktop View */}
+			<div className="hidden rounded-md border md:block">
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
@@ -248,6 +270,103 @@ function DataTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
+
+			{/* Mobile View */}
+			<div className="grid gap-4 md:hidden">
+				<div className="flex items-center gap-3">
+					<h3 className="text-sm font-medium text-zinc-500">Trier par</h3>
+					<Select
+						onValueChange={(value) => {
+							const [id, desc] = value.split("-");
+							setSorting([{ id, desc: desc === "desc" }]);
+						}}
+						defaultValue="plate-asc"
+					>
+						<SelectTrigger className="w-45">
+							<SelectValue placeholder="Trier par..." />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="plate-asc">Immat (A-Z)</SelectItem>
+							<SelectItem value="plate-desc">Immat (Z-A)</SelectItem>
+							<SelectItem value="ownerName-asc">Propriétaire (A-Z)</SelectItem>
+							<SelectItem value="brand-asc">Marque (A-Z)</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+
+				{table.getRowModel().rows.length > 0 ? (
+					table.getRowModel().rows.map((row) => {
+						const original = row.original as VehicleWithOwner;
+						const ownerName = original.ownerName;
+						const initial = ownerName
+							.split(" ")
+							.map((n) => n[0])
+							.join("")
+							.toUpperCase()
+							.slice(0, 2);
+
+						return (
+							<Card key={row.id}>
+								<CardContent className="p-0">
+									<div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+										<div className="flex items-center gap-2 font-medium">
+											<IconCar className="text-muted-foreground size-4" />
+											<span>
+												{original.brand} {original.model}
+											</span>
+										</div>
+										<Badge
+											variant="outline"
+											className="bg-background text-muted-foreground font-mono font-normal"
+										>
+											{original.plate}
+										</Badge>
+									</div>
+									<div className="flex items-center justify-between p-4">
+										<Link
+											href={`/customers/${original.ownerId}`}
+											className="group flex items-center gap-3"
+										>
+											<Avatar className="size-9 border border-zinc-200 dark:border-zinc-800">
+												<AvatarImage
+													src={`https://api.dicebear.com/9.x/initials/svg?seed=${ownerName}`}
+													alt={ownerName}
+												/>
+												<AvatarFallback className="text-xs">
+													{initial}
+												</AvatarFallback>
+											</Avatar>
+											<div className="flex flex-col">
+												<span className="text-sm font-medium group-hover:underline">
+													{ownerName}
+												</span>
+												<span className="text-muted-foreground text-xs">
+													Propriétaire
+												</span>
+											</div>
+										</Link>
+
+										<Button
+											variant="outline"
+											size="sm"
+											asChild
+											className="h-8 text-xs"
+										>
+											<Link href={`/documents?plate=${original.plate}`}>
+												Dossier <IconExternalLink className="ml-1 size-3" />
+											</Link>
+										</Button>
+									</div>
+								</CardContent>
+							</Card>
+						);
+					})
+				) : (
+					<div className="rounded-lg border border-dashed p-8 text-center text-zinc-500">
+						Aucun véhicule trouvé.
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -267,26 +386,18 @@ export default function Page() {
 			<AppSidebar variant="inset" />
 			<SidebarInset>
 				<SiteHeader />
-				<div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
-					<div className="flex items-center justify-between">
-						<h1 className="text-2xl font-bold tracking-tight">Liste Véhicules</h1>
-						<Button
-							size="sm"
-							className="gap-2"
-							onClick={() => setShowCreateDialog(true)}
-						>
-							<IconPlus className="size-4" />
-							<span className="hidden sm:inline">Nouveau véhicule</span>
-						</Button>
-					</div>
-
+				<div className="flex flex-1 flex-col gap-4 p-4 pb-24 lg:p-6 lg:pb-6">
 					<CreateVehicleDialog
 						open={showCreateDialog}
 						onOpenChange={setShowCreateDialog}
 					/>
 
-					<div className="rounded-xl border bg-white p-1 shadow-sm dark:bg-zinc-950">
-						<DataTable columns={columns} data={allVehicles} />
+					<div className="rounded-xl border bg-white p-4 shadow-sm dark:bg-zinc-950">
+						<DataTable
+							columns={columns}
+							data={allVehicles}
+							onAddClick={() => setShowCreateDialog(true)}
+						/>
 					</div>
 				</div>
 			</SidebarInset>

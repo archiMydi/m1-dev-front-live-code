@@ -5,7 +5,6 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
@@ -26,7 +25,6 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 		lastName: "",
 		email: "",
 		tel: "",
-		address: "",
 		postalCode: "",
 		city: "",
 	});
@@ -38,14 +36,13 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 		// Simulation d'un appel API
 		setTimeout(() => {
 			setIsLoading(false);
-			toast.success("Client créé avec succès (MOCK)");
+			toast.success("Client créé avec succès (Mock)");
 			onOpenChange(false);
 			setFormData({
 				firstName: "",
 				lastName: "",
 				email: "",
 				tel: "",
-				address: "",
 				postalCode: "",
 				city: "",
 			});
@@ -54,17 +51,17 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-125">
+			<DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Nouveau Client</DialogTitle>
 					<DialogDescription>
 						Remplissez les informations du nouveau client.
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="grid gap-4 py-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="firstName">Prénom</Label>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="grid grid-cols-2 gap-2">
+						<div className="space-y-2">
+							<Label htmlFor="firstName">Prénom *</Label>
 							<Input
 								id="firstName"
 								required
@@ -74,8 +71,8 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 								}
 							/>
 						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="lastName">Nom</Label>
+						<div className="space-y-2">
+							<Label htmlFor="lastName">Nom *</Label>
 							<Input
 								id="lastName"
 								required
@@ -86,39 +83,30 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 							/>
 						</div>
 					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								type="email"
-								required
-								value={formData.email}
-								onChange={(e) =>
-									setFormData({ ...formData, email: e.target.value })
-								}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="tel">Téléphone</Label>
-							<Input
-								id="tel"
-								type="tel"
-								value={formData.tel}
-								onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
-							/>
-						</div>
-					</div>
-					<div className="grid gap-2">
-						<Label htmlFor="address">Adresse</Label>
+
+					<div className="space-y-2">
+						<Label htmlFor="email">Email *</Label>
 						<Input
-							id="address"
-							value={formData.address}
-							onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+							id="email"
+							type="email"
+							required
+							value={formData.email}
+							onChange={(e) => setFormData({ ...formData, email: e.target.value })}
 						/>
 					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="grid gap-2">
+
+					<div className="space-y-2">
+						<Label htmlFor="tel">Téléphone</Label>
+						<Input
+							id="tel"
+							type="tel"
+							value={formData.tel}
+							onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
+						/>
+					</div>
+
+					<div className="grid grid-cols-2 gap-2">
+						<div className="space-y-2">
 							<Label htmlFor="postalCode">Code Postal</Label>
 							<Input
 								id="postalCode"
@@ -128,7 +116,7 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 								}
 							/>
 						</div>
-						<div className="grid gap-2">
+						<div className="space-y-2">
 							<Label htmlFor="city">Ville</Label>
 							<Input
 								id="city"
@@ -137,14 +125,21 @@ export function CreateCustomerDialog({ open, onOpenChange }: CreateCustomerDialo
 							/>
 						</div>
 					</div>
-					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+
+					<div className="flex gap-2 pt-4">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							disabled={isLoading}
+							className="flex-1"
+						>
 							Annuler
 						</Button>
-						<Button type="submit" disabled={isLoading}>
+						<Button type="submit" disabled={isLoading} className="flex-1">
 							{isLoading ? "Création..." : "Créer le client"}
 						</Button>
-					</DialogFooter>
+					</div>
 				</form>
 			</DialogContent>
 		</Dialog>

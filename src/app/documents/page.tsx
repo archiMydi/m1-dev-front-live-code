@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Search, Car, Calendar, Gauge, Settings } from "lucide-react";
+import { Search, Car, Calendar, Gauge, Settings, Link as LinkIcon } from "lucide-react";
+import { buildBPartsSlug } from "@/lib/slugBuilder";
 
 export default function Page() {
 	const [plate, setPlate] = useState("");
@@ -22,34 +23,28 @@ export default function Page() {
 		const cleanPlate = plateToSearch.replace(/[^a-zA-Z0-9]/g, "");
 
 		try {
-			const [resVin, resSlug] = await Promise.all([
-				fetch(`/api/feuvert/vin/${cleanPlate}`),
-				fetch(`/api/feuvert/slug/${cleanPlate}`),
-			]);
+			const resVin = await fetch(`/api/feuvert/vin/${cleanPlate}`);
 
 			if (!resVin.ok) {
-				throw new Error("Véhicule introuvable ou erreur du service d'immatriculation. ");
+				throw new Error("Véhicule introuvable ou erreur technique.");
 			}
 
 			const dataVin = await resVin.json();
 
-			let dataSlug = null;
-			if (resSlug.ok) {
-				dataSlug = await resSlug.json();
-			} else {
-				console.warn("Slug Service Error");
-			}
-
-			console.log("Infos Voiture:", dataVin);
-			console.log("Infos Slug:", dataSlug);
-
-			if (!dataVin.registrationNumber) {
+			if (!dataVin.all || dataVin.all.length === 0) {
 				throw new Error("Aucune information trouvée pour cette plaque");
 			}
 
+			console.log("Infos Voiture (Norauto):", dataVin);
+
+			const generatedSlug = buildBPartsSlug(dataVin);
+			console.log("Slug généré :", generatedSlug);
+
 			setData({
 				...dataVin,
-				bParts: dataSlug,
+				bParts: {
+					versions: [{ slug: generatedSlug }],
+				},
 			});
 		} catch (err: any) {
 			console.error("Erreur critique:", err);
@@ -73,16 +68,35 @@ export default function Page() {
 		await fetchVehicleData(plate);
 	};
 
-	const getFeature = (name: string) => {
-		if (!data?.additionalFeatures) return "N/A";
-		const feature = data.additionalFeatures.find((f: any) => f.name === name);
-		return feature ? feature.value : "N/A";
+	const getFeature = (key: string) => {
+		if (!data?.all?.[0]) return "N/A";
+		const vehicle = data.all[0];
+
+		const immatAttr = vehicle.immatAttributes?.find((a: any) => a.name === key);
+		if (immatAttr) return immatAttr.value;
+
+		const genAttr = vehicle.attributes?.find((a: any) => a.type === key);
+		if (genAttr) return genAttr.value;
+
+		if (key === "KTYPE") {
+			const ktype = vehicle.idsOther?.find((a: any) => a.name === "KTYPE");
+			return ktype ? ktype.value : "N/A";
+		}
+
+		return "N/A";
 	};
 
 	const formatDate = (dateString: string) => {
-		if (!dateString || dateString.length !== 8) return dateString;
-		return `${dateString.substring(6, 8)}/${dateString.substring(4, 6)}/${dateString.substring(0, 4)}`;
+		if (!dateString) return "N/A";
+		if (dateString.includes("/")) return dateString;
+		if (dateString.length === 8) {
+			return `${dateString.substring(6, 8)}/${dateString.substring(4, 6)}/${dateString.substring(0, 4)}`;
+		}
+		return dateString;
 	};
+
+	const vehicle = data?.all?.[0];
+	const slug = data?.bParts?.versions?.[0]?.slug;
 
 	return (
 		<SidebarProvider
@@ -98,7 +112,7 @@ export default function Page() {
 				<SiteHeader />
 
 				<div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 pt-0">
-					{/* Section Recherche */}
+					{/* Formulaire de recherche */}
 					<div className="rounded-xl border bg-white p-6 shadow-sm">
 						<h1 className="mb-4 text-2xl font-bold text-slate-800">
 							Identification par Plaque
@@ -130,56 +144,53 @@ export default function Page() {
 						{error && <p className="mt-3 text-sm font-medium text-red-500">{error}</p>}
 					</div>
 
-					{/* Section Résultats */}
-					{data && (
+					{/* Affichage des Résultats */}
+					{vehicle && (
 						<div className="animate-in fade-in slide-in-from-bottom-4 grid grid-cols-1 gap-6 duration-500 md:grid-cols-3">
-							{/* Carte Principale (Image + Titre) */}
+							{/* Carte Principale */}
 							<div className="overflow-hidden rounded-xl border bg-white shadow-sm md:col-span-3">
 								<div className="flex flex-col md:flex-row">
 									<div className="flex items-center justify-center border-b bg-slate-50 p-6 md:w-1/3 md:border-r md:border-b-0">
-										{data.thumbnailUrl ? (
-											<img
-												src={data.thumbnailUrl}
-												alt="Voiture"
-												className="object-fit max-h-48 mix-blend-multiply"
-											/>
-										) : (
-											<Car className="h-24 w-24 text-slate-300" />
-										)}
+										<Car className="h-24 w-24 text-slate-300" />
 									</div>
 									<div className="flex flex-col justify-center p-6 md:w-2/3">
-										<div className="mb-2 inline-flex items-center gap-2">
+										<div className="mb-2 inline-flex flex-wrap items-center gap-2">
 											<span className="rounded border border-blue-200 bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800 uppercase">
-												{data.carBrand}
+												{vehicle.brand?.label}
 											</span>
 											<span className="rounded border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-mono text-xs text-slate-600">
-												{data.registrationNumber}
+												{getFeature("IMMAT")}
 											</span>
-											{/* Badge Slug trouvé ou non */}
-											{data.bParts?.versions?.[0]?.slug ? (
-												<span className="rounded border border-green-200 bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800 uppercase">
-													Slug Compatible
-												</span>
-											) : (
-												<span className="rounded border border-amber-200 bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 uppercase">
-													Slug Manquant
-												</span>
+
+											{/* Affichage du Slug Généré */}
+											{slug && (
+												<div className="flex items-center gap-1 rounded border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs text-purple-800">
+													<LinkIcon className="h-3 w-3" />
+													<span
+														className="max-w-50 truncate font-mono md:max-w-xs"
+														title={slug}
+													>
+														{slug}
+													</span>
+												</div>
 											)}
-											<span>Slug Maker Result :</span>
 										</div>
+
 										<h2 className="mb-2 text-3xl font-bold text-slate-900">
-											{data.commercialModel}
+											{vehicle.model?.label}
 										</h2>
-										<p className="text-lg text-slate-600">{data.engine}</p>
+										<p className="text-lg text-slate-600">
+											{vehicle.cyl?.label}
+										</p>
 										<p className="mt-1 text-sm text-slate-400">
-											VIN: {getFeature("vin_codif")}
+											VIN: {getFeature("CODIF_VIN_PRF")}
 										</p>
 									</div>
 								</div>
 							</div>
 
-							{/* Carte Technique */}
-							<div className="rounded-xl border bg-white p-5 shadow-sm sm:mb-15">
+							{/* Carte Motorisation */}
+							<div className="rounded-xl border bg-white p-5 shadow-sm">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Gauge className="h-5 w-5 text-blue-600" />
 									<span>Motorisation</span>
@@ -188,41 +199,41 @@ export default function Page() {
 									<div className="flex justify-between">
 										<span className="text-slate-500">Carburant</span>
 										<span className="font-medium capitalize">
-											{data.fuel?.toLowerCase()}
+											{getFeature("ENERGIE")?.toLowerCase() ||
+												getFeature("TYPEMOTEUR")}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Puissance</span>
 										<span className="font-medium">
-											{getFeature("horse_power")} ch (
-											{getFeature("fiscal_horse_power")} CV)
+											{getFeature("PUIMOTCVX")} ch ({getFeature("PUIS_FISC")}{" "}
+											CV)
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Cylindrée</span>
 										<span className="font-medium">
-											{getFeature("capacity")} cm³ (
-											{getFeature("cylinder_engine")} cyl.)
+											{getFeature("MOTCYLTEC")} cm³ ({getFeature("NBRCYLIND")}{" "}
+											cyl.)
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Code Moteur</span>
 										<span className="font-medium">
-											{getFeature("engine_id")}
+											{getFeature("CODEMOTEUR") || getFeature("MOTEUR")}
 										</span>
 									</div>
 									<div className="flex justify-between">
-										<span className="text-slate-500">Pollution</span>
+										<span className="text-slate-500">Pollution (CO2)</span>
 										<span className="font-medium">
-											{getFeature("co2")} g/km (Crit'Air{" "}
-											{getFeature("depollution") === "OUI" ? "?" : "?"})
+											{getFeature("CO2")} g/km
 										</span>
 									</div>
 								</div>
 							</div>
 
-							{/* Carte Transmission & Châssis */}
-							<div className="mb-0 rounded-xl border bg-white p-5 shadow-sm sm:mb-15">
+							{/* Carte Transmission */}
+							<div className="rounded-xl border bg-white p-5 shadow-sm">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Settings className="h-5 w-5 text-blue-600" />
 									<span>Transmission & Châssis</span>
@@ -231,39 +242,40 @@ export default function Page() {
 									<div className="flex justify-between">
 										<span className="text-slate-500">Boîte de vitesse</span>
 										<span className="font-medium capitalize">
-											{getFeature("transmission")?.toLowerCase()}
+											{getFeature("TP_BOITE_VIT")?.toLowerCase()}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Rapports</span>
 										<span className="font-medium">
-											{getFeature("number_of_gears")} vitesses
+											{getFeature("NB_VITESSES")} vitesses
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Transmission</span>
 										<span className="font-medium capitalize">
-											{getFeature("drive_train")?.toLowerCase()}
+											{getFeature("PROPULSION")?.toLowerCase()}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Poids à vide</span>
 										<span className="font-medium">
-											{getFeature("empty_weight")} kg
+											{getFeature("POIDS_VIDE")} kg
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Carrosserie</span>
 										<span className="font-medium capitalize">
-											{getFeature("body")?.toLowerCase()} (
-											{getFeature("doors")} portes)
+											{getFeature("CARROSSERIE")?.toLowerCase() ||
+												getFeature("CARROSS")}{" "}
+											({getFeature("NB_PORTES")} portes)
 										</span>
 									</div>
 								</div>
 							</div>
 
-							{/* Carte Infos Légales */}
-							<div className="mb-15 rounded-xl border bg-white p-5 shadow-sm">
+							{/* Carte Dates */}
+							<div className="rounded-xl border bg-white p-5 shadow-sm">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Calendar className="h-5 w-5 text-blue-600" />
 									<span>Dates & Divers</span>
@@ -272,36 +284,63 @@ export default function Page() {
 									<div className="flex justify-between">
 										<span className="text-slate-500">Mise en circ.</span>
 										<span className="font-medium">
-											{formatDate(getFeature("initial_entry_into_service"))}
+											{formatDate(getFeature("DATE_1ER_CIR"))}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Carte grise</span>
 										<span className="font-medium">
-											{formatDate(getFeature("vhc_registration_date"))}
+											{formatDate(getFeature("DATE_DCG"))}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Type Mine</span>
-										<span className="font-medium">
-											{getFeature("mine_type")}
-										</span>
+										<span className="font-medium">{getFeature("TYPE_CG")}</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">K-Type (TecDoc)</span>
 										<span className="rounded bg-slate-100 px-2 font-medium">
-											{data.ktype}
+											{getFeature("KTYPE")}
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-slate-500">Couleur</span>
 										<span className="font-medium capitalize">
-											{getFeature("color")?.toLowerCase()}
+											{getFeature("COULEUR_VEHIC")?.toLowerCase()}
 										</span>
 									</div>
 								</div>
 							</div>
+							{/* pièces */}
+							<div className="rounded-xl border bg-white p-5 shadow-sm">
+								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
+									<LinkIcon className="h-5 w-5 text-blue-600" />
+									<span>Pièces compatibles</span>
+								</div>
+								<div className="space-y-3 text-sm">
+									<a
+										href={`https://www.bparts.com/fr/fiche-technique/${slug}`}
+										target="_blank"
+										className="flex items-center gap-2 rounded bg-purple-50 px-3 py-2 text-sm font-medium text-purple-800 transition-colors hover:bg-purple-100"
+									>
+										<LinkIcon className="h-4 w-4" />
+										Voir sur BParts
+									</a>
+								</div>
+							</div>
 						</div>
+					)}
+
+					{/* Zone Debug */}
+					{data && (
+						<details className="mt-8 text-xs text-slate-400">
+							<summary className="mb-2 cursor-pointer hover:text-slate-300">
+								Voir les données brutes JSON
+							</summary>
+							<pre className="max-h-40 overflow-auto rounded bg-slate-900 p-4 text-slate-50">
+								{JSON.stringify(data, null, 2)}
+							</pre>
+						</details>
 					)}
 				</div>
 			</SidebarInset>

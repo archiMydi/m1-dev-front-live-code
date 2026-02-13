@@ -17,12 +17,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { InitialDateTime } from "@/components/appointments-calendar";
-
-type Vehicle = { id: number; plate: string; model: string };
-type User = { id: number; name: string };
-type Customer = { id: number; name: string };
-type Part = { id: number; name: string; price: number };
+import { trpc } from "@/trpc/client";
+import type {
+	CreateMissionInput,
+	Customer,
+	InitialDateTime,
+	Part,
+	User,
+	Vehicle,
+} from "@/lib/types";
 
 interface AppointmentsModalProps {
 	initialDateTime: InitialDateTime;
@@ -41,9 +44,19 @@ export default function AppointmentsModal({
 	parts,
 	onClose,
 }: AppointmentsModalProps) {
+	const createMission = trpc.missions.create.useMutation();
+	const utils = trpc.useUtils();
+
 	const formatDate = (date: Date) => date.toISOString().split("T")[0];
 	const formatTime = (date: Date) =>
 		`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+	// Tenir compte du fuseau horaire
+	const toUTCDateTime = (dateStr: string, timeStr: string): string => {
+		const date = new Date(`${dateStr}T${timeStr}`);
+		const correctedDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+		return correctedDate.toISOString();
+	};
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -92,13 +105,17 @@ export default function AppointmentsModal({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		const userIdNum = parseInt(formData.userId);
+		const vehicleIdNum = parseInt(formData.vehicleId);
+		const customerIdNum = parseInt(formData.customerId);
+
 		if (
 			!formData.title ||
-			!formData.vehicleId ||
-			!formData.userId ||
-			!formData.customerId ||
 			!formData.startDate ||
-			!formData.endDate
+			!formData.endDate ||
+			isNaN(userIdNum) ||
+			isNaN(vehicleIdNum) ||
+			isNaN(customerIdNum)
 		) {
 			alert("Veuillez remplir tous les champs obligatoires");
 			return;
@@ -106,22 +123,27 @@ export default function AppointmentsModal({
 
 		setIsLoading(true);
 
-		const missionData = {
+		const missionData: CreateMissionInput = {
 			title: formData.title,
-			vehicleId: parseInt(formData.vehicleId),
-			userId: parseInt(formData.userId),
-			customerId: parseInt(formData.customerId),
-			startDate: new Date(`${formData.startDate}T${formData.startTime}`),
-			endDate: new Date(`${formData.endDate}T${formData.endTime}`),
+			vehicleId: vehicleIdNum,
+			userId: userIdNum,
+			customerId: customerIdNum,
+			start: toUTCDateTime(formData.startDate, formData.startTime),
+			end: toUTCDateTime(formData.endDate, formData.endTime),
 			parts: formData.selectedParts,
 			totalPrice: parseFloat(formData.totalPrice) || 0,
 		};
 
-		console.log("Mission data:", missionData);
-		// TODO: Envoyer missionData à l'API
-
-		setIsLoading(false);
-		onClose();
+		try {
+			await createMission.mutateAsync(missionData);
+			await utils.missions.list.invalidate();
+			onClose();
+		} catch (error) {
+			console.error("Erreur création mission:", error);
+			alert("Erreur lors de la création de la mission");
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (

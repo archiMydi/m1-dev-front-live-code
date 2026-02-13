@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { vehicles } from "./vehicles-schema";
 
@@ -13,14 +14,13 @@ export const missions = sqliteTable("missions", {
 	endDate: int("end_date", { mode: "timestamp" }).notNull(),
 	partIds: text("part_ids")
 		.notNull()
-		.$default(() => "[]"),
+		.default("[]"),
 	totalPrice: real("total_price").notNull(),
-	status: text("status").notNull().$default(() => "planned"),
+	status: text("status").notNull().default("planned"),
 	createdAt: int("created_at", { mode: "timestamp" })
 		.notNull()
-		.$default(() => new Date()),
+		.default(sql`(unixepoch())`),
 	updatedAt: int("updated_at", { mode: "timestamp" })
 		.notNull()
-		.$default(() => new Date())
-		.$onUpdate(() => new Date()),
+		.default(sql`(unixepoch())`),
 });

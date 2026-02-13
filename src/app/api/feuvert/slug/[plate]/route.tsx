@@ -21,9 +21,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ plat
 		"Sec-Fetch-Dest": "document",
 		"Sec-Fetch-Mode": "navigate",
 		"Sec-Fetch-Site": "none",
-		"Sec-Fetch-User": "?1",
 		Priority: "u=0, i",
 		TE: "trailers",
+		Cookie: "intercom-id-npdb81wn=7ccf15d5-60a0-41b0-96ad-e839f0fb81e8; intercom-session-npdb81wn=; intercom-device-id-npdb81wn=da60c012-623b-4b16-9b44-b1ea7c8a6c2d; _cookie_required=1; _cookie_preferences=1; _cookie_markting=1; _cookie_statistics=1; _currency=EUR; _shipping_location=11; _language=fr; django_language=; aws-waf-token=201bc719-579e-47ef-80fc-dbad169449fd:CgoAqqpArucrAAAA:80cpFKalIEM73vX/zusXznTv8g5KBuhsgk9v3LgV3Z8SC0NYHrjV+WKGuDuc+u2E8jrBfdv/GhhavNWbIQyF33CdtCNQuPJaPFeUY/CDOyplOyCU18RARxwmQ7IkPzp/EpCpdFaYn4pL+wxiBPs5ceknhWNAG2o3RDOgb3OLPH7IqkbNqZF9tFnfeinDIj7bLWvPUg==; sessionid=iqf3b880m6f1kwxph0kpn8r8xq0ttqpo",
 	};
 
 	try {
@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ plat
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error(`[Slug API] Error ${response.status}: ${errorText.slice(0, 100)}`);
+			console.error(`[Slug API] Error ${response.status}: ${errorText.slice(0, 200)}`);
 			throw new Error(`Erreur B-Parts: ${response.status}`);
 		}
 
