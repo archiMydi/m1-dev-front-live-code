@@ -3,6 +3,8 @@ import { user } from "./auth-schema";
 
 export * from "./auth-schema";
 export * from "./missions-schema";
+export * from "./parts-schema";
+export * from "./vehicles-schema";
 
 export const garage = sqliteTable("garage", {
 	id: int("id").primaryKey({ autoIncrement: true }),
@@ -45,11 +47,4 @@ export const garageInvite = sqliteTable("garage_invite", {
 	userId: int("user_id")
 		.notNull()
 		.references(() => user.id),
-});
-
-export const vehicle = sqliteTable("vehicle", {
-	id: int("id").primaryKey({ autoIncrement: true }),
-	vin: text("vin").notNull(),
-	marque: text("marque").notNull(),
-	model: text("model").notNull(),
 });

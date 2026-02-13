@@ -1,3 +1,5 @@
+export type MissionStatus = "planned" | "in-progress" | "completed" | "cancelled";
+
 export interface Mission {
 	id: number;
 	title: string;
@@ -8,5 +10,19 @@ export interface Mission {
 	end: string;
 	parts: number[];
 	totalPrice: number;
-	status: "planned" | "in-progress" | "completed" | "cancelled";
+	status: MissionStatus;
+}
+
+export interface Vehicle {
+	id: number;
+	plate: string;
+	model: string;
+	vin?: string | null;
+	marque?: string | null;
+}
+
+export interface Part {
+	id: number;
+	name: string;
+	price: number;
 }

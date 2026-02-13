@@ -8,6 +8,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogFooter,
+	DialogDescription,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";

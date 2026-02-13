@@ -1,0 +1,285 @@
+{
+  "all": [
+    {
+      "idDocument": "13110|FR|fr|S",
+      "idVehicule": "13110",
+      "idsOther": [
+        {
+          "name": "KTYPE",
+          "value": "18372"
+        },
+        {
+          "name": "NUMVEHGEN",
+          "value": "359791"
+        }
+      ],
+      "brand": {
+        "idBrand": "1384",
+        "label": "AUDI",
+        "model": null,
+        "ranking": "0",
+        "channel": null,
+        "type": null,
+        "brandTypes": null,
+        "vehicleType": null,
+        "vehicleTypes": null
+      },
+      "model": {
+        "idBrand": null,
+        "idModel": "66995",
+        "label": "A4 B7",
+        "model": null,
+        "startYear": null,
+        "endYear": null,
+        "ranking": "0",
+        "channel": null,
+        "typ": null,
+        "lang": null,
+        "country": null,
+        "typeVehicle": null
+      },
+      "cyl": {
+        "idCyl": "3600",
+        "label": "2.0 TFSI quattro",
+        "idBrand": null,
+        "idVehicule": null,
+        "idModel": null,
+        "typ": null,
+        "lang": null,
+        "country": null
+      },
+      "startYear": "200411",
+      "endYear": "200806",
+      "country": "FR",
+      "lang": "fr",
+      "attributes": [
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "A4 B7 (8EC)",
+          "type": "LIBMODSPE",
+          "idVehiculeAttribute": "13110|FR|fr|S|LIBMODSPE|A4 B7 (8EC)"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "147",
+          "type": "PUIMOTKWS",
+          "idVehiculeAttribute": "13110|FR|fr|S|PUIMOTKWS|147"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "1984",
+          "type": "MOTCYLTEC",
+          "idVehiculeAttribute": "13110|FR|fr|S|MOTCYLTEC|1984"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "200",
+          "type": "PUIMOTCVX",
+          "idVehiculeAttribute": "13110|FR|fr|S|PUIMOTCVX|200"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "4",
+          "type": "NBRCYLIND",
+          "idVehiculeAttribute": "13110|FR|fr|S|NBRCYLIND|4"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "4",
+          "type": "NBRVALVES",
+          "idVehiculeAttribute": "13110|FR|fr|S|NBRVALVES|4"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "Essence",
+          "type": "TYPEMOTEUR",
+          "idVehiculeAttribute": "13110|FR|fr|S|TYPEMOTEUR|Essence"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "Traction intégrale",
+          "type": "PROPULSION",
+          "idVehiculeAttribute": "13110|FR|fr|S|PROPULSION|Traction intégrale"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "Injection directe",
+          "type": "INJECTION",
+          "idVehiculeAttribute": "13110|FR|fr|S|INJECTION|Injection directe"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "A trois volumes",
+          "type": "CARROSS",
+          "idVehiculeAttribute": "13110|FR|fr|S|CARROSS|A trois volumes",
+          "idCaross": "465523"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "BGB | BPG | BWE | BWT",
+          "type": "MOTEUR",
+          "idVehiculeAttribute": "13110|FR|fr|S|MOTEUR|BGB | BPG | BWE | BWT"
+        },
+        {
+          "parentId": "13110|FR|fr|S",
+          "value": "N",
+          "type": "STARTANDSTOP",
+          "idVehiculeAttribute": "13110|FR|fr|S|STARTANDSTOP|N"
+        }
+      ],
+      "immatAttributes": [
+        {
+          "name": "VERSION",
+          "value": "2.0TFSIQ"
+        },
+        {
+          "name": "DATE_1ER_CIR",
+          "value": "07/09/2005"
+        },
+        {
+          "name": "PUIS_FISC",
+          "value": "13"
+        },
+        {
+          "name": "NB_PORTES",
+          "value": "4"
+        },
+        {
+          "name": "COULEUR_VEHIC",
+          "value": "Gris"
+        },
+        {
+          "name": "CODIF_VIN_PRF",
+          "value": "WAUZZZ8E55A403164"
+        },
+        {
+          "name": "IMMAT",
+          "value": "DD276KG"
+        },
+        {
+          "name": "CARROSSERIE",
+          "value": "Berline"
+        },
+        {
+          "name": "GENRE_CG",
+          "value": "VP"
+        },
+        {
+          "name": "ENERGIE",
+          "value": "ESSENCE"
+        },
+        {
+          "name": "ENERGIE_ID",
+          "value": "12"
+        },
+        {
+          "name": "TYPE_CG",
+          "value": "MAU28C2FR775"
+        },
+        {
+          "name": "TP_BOITE_VIT",
+          "value": "MANUELLE"
+        },
+        {
+          "name": "NB_VITESSES",
+          "value": "6"
+        },
+        {
+          "name": "CODEMOTEUR",
+          "value": "BGB"
+        },
+        {
+          "name": "TURBO_COMPR",
+          "value": "TURBO"
+        },
+        {
+          "name": "DEPOLLUTION",
+          "value": "NON"
+        },
+        {
+          "name": "CO2",
+          "value": "216"
+        },
+        {
+          "name": "HAUTEUR",
+          "value": "140"
+        },
+        {
+          "name": "EMPAT",
+          "value": "266"
+        },
+        {
+          "name": "LONGUEUR",
+          "value": "459"
+        },
+        {
+          "name": "LARGEUR",
+          "value": "177"
+        },
+        {
+          "name": "POIDS_VIDE",
+          "value": "1490"
+        },
+        {
+          "name": "PROPULSION",
+          "value": "TRACTION INTEGRALE"
+        },
+        {
+          "name": "DATE_DCG",
+          "value": "25/02/2014"
+        },
+        {
+          "name": "NB_PL_ASS",
+          "value": "5"
+        },
+        {
+          "name": "NB_SOUPAPES",
+          "value": "4"
+        },
+        {
+          "name": "NB_VOLUMES",
+          "value": "4"
+        },
+        {
+          "name": "CONSEXURB",
+          "value": "6.8"
+        },
+        {
+          "name": "CONSMIXTE",
+          "value": "9.0"
+        },
+        {
+          "name": "CONSURB",
+          "value": "12.8"
+        },
+        {
+          "name": "PRIXVEHIC",
+          "value": "38466.00"
+        },
+        {
+          "name": "TYPEVARVERSPRF",
+          "value": "8ELBGBQ1QM6XE0R8E600GGP"
+        },
+        {
+          "name": "REG_COUNTRY",
+          "value": "FR"
+        },
+        {
+          "name": "ID_MARQUE_BDA",
+          "value": "1384"
+        },
+        {
+          "name": "ID_MODELE_BDA",
+          "value": "66995"
+        }
+      ],
+      "typeVeh": "S",
+      "tecdocBrandId": "5",
+      "tecdocModelId": "5376",
+      "bodyType": "TOURISME"
+    }
+  ],
+  "error": null,
+  "code": 200,
+  "registrationInfoOA": null
+}

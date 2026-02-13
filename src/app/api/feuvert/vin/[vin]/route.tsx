@@ -1,59 +1,87 @@
 import { NextResponse } from "next/server";
+import fs from "fs/promises";
+import path from "path";
+
+// Chemins des dossiers (à la racine du projet)
+const JSON_DIR = path.join(process.cwd(), "json_res_norauto"); // J'ai changé le dossier pour séparer de FeuVert
+const LOG_DIR = path.join(process.cwd(), "logs");
+
+// Helper pour créer les dossiers s'ils n'existent pas
+async function ensureDirectories() {
+	await fs.mkdir(JSON_DIR, { recursive: true });
+	await fs.mkdir(LOG_DIR, { recursive: true });
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ vin: string }> }) {
 	const { vin } = await params;
+	await ensureDirectories();
 
-	console.log(`/*********** \nReceived request for VIN: ${vin}`);
-	console.log("Fetching data from API...");
+	// Chemins des fichiers
+	const filePath = path.join(JSON_DIR, `norauto_response_${vin}.json`);
+	const accessLogPath = path.join(LOG_DIR, "access_norauto.log");
+	const errorLogPath = path.join(LOG_DIR, "error_norauto.log");
 
-	const targetUrl = `https://api-front.feuvert.fr/api/v1/vehicles/vehicleinformation?RegistrationNumber=${vin}`;
+	console.log(`/*********** \n[Norauto] Received request for Plate/VIN: ${vin}`);
+
+	// URL Norauto
+	// Note: le paramètre query 'shop=9902' semble être un ID de magasin par défaut, 'reg-country=FR' pour la France.
+	const targetUrl = `https://www.norauto.fr/next-e-shop/car-selector/identification/reg-vin/external/${vin}?shop=9902&reg-country=FR`;
 
 	const headers = {
-		host: "api-front.feuvert.fr",
-		"user-agent":
+		Host: "www.norauto.fr",
+		"User-Agent":
 			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",
-		accept: "*/*",
-		"accept-language": "en-US,en;q=0.9",
-		"accept-encoding": "gzip, deflate, br, zstd",
-		referer: "https://www.feuvert.fr/",
-		"x-correlation-id": "2548ee08-2a81-42f6-905d-d638fe4f2f10",
-		"x-csrf-token":
-			"s5ZN/o0rpHd8v2W/Y3vEJg==:TCbaQBOgNvp6LG2lghW0o8cQXIKHSBpprBzm3AihmFUtiL2YZFvoGeFaqCGn+FaD",
-		origin: "https://www.feuvert.fr",
-		connection: "keep-alive",
-		cookie: "datadome=gXUh1_KwgsYVY03RmQoEVZspqtcBGXGyNEML60emwEzChRXrhDDpWIQ4N9xfxG9mmxTizW6IQ16XMjQEzH6UFpF3Wv5lyy~3odEyq2Jt5vWXeQy8unuYKv9xH2JuKp0l; eeb_master=ddf99a17-fb88-4af9-9baa-9df38e8ab2ee; eeb_csrf=9814c3b4-822a-4039-b049-2e03b75e1051; _pcid=1bbb4262-2868-7239-67ba-4bf883ec5d08; _pcid_creation_date=2026-02-10T00%3A00%3A00.000Z; ty_id=6d5604e3-875c-505c-116d-c44554d20c6b; ty_ead=eyJjdXJyZW50Q2FtcGFpZ24iOnsiZGF0ZSI6MTc3MDk3MjU1ODYzNywicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInRhcmdldCI6Imh0dHBzOi8vd3d3LmZldXZlcnQuZnIvIn0sInJlZmVycmVyIjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8iLCJ0YXJnZXQiOiJodHRwczovL3d3dy5mZXV2ZXJ0LmZyLyJ9; session-affinity-fv3=1770972544.358.33685.930060|c9dfd244d691f7869ebe107c50658509; ty_session=true",
-		"sec-fetch-dest": "empty",
-		"sec-fetch-mode": "cors",
-		"sec-fetch-site": "same-site",
-		priority: "u=4",
-		te: "trailers",
+		Accept: "*/*",
+		"Accept-Language": "en-US,en;q=0.9",
+		"Accept-Encoding": "gzip, deflate, br, zstd",
+		Referer: "https://www.norauto.fr/",
+		lang: "fr",
+		country: "FR",
+		Connection: "keep-alive",
+		// Les cookies Norauto (Datadome + Session)
+		Cookie: "datadome=Nu9nfW3l81ysTAztWUFaDDJzPusV0XXnM5SGUmE3MmCJOOxmNKb_dKFqgC6zTGXXvoMKi8Pr3wjuOmkVvsWYGkSVAeMTBjtJ0UcDVsfd5xcPg5k2X_h6EDRljiM2L28f; TCPID=126130525410279354447; _dd_s=aid=17c7b0b4-1b9f-48a0-885d-dd4b43ef47b1&rum=0&expire=1770976078858; CNIL=0%40029%7C1%7C6602%402%2C3%2C4%401%401769557976187%2C1769557976187%2C1803253976187%40; CNIL_CENTER=2%2C3%2C4; tns.geostore=1; sess=s%3AJ9xQc5demrIh5WheDCK8o0FJiFwKjIBF.R%2F9vsnMt2pkEvXr1jUTVncYXT%2B04Bje1pumAPFDpFBY",
+		"Sec-Fetch-Dest": "empty",
+		"Sec-Fetch-Mode": "cors",
+		"Sec-Fetch-Site": "same-origin", // Important car l'API attend que ça vienne du même domaine (simulé par les headers Host/Referer)
+		Priority: "u=0",
+		TE: "trailers",
 	};
 
 	try {
+		console.log("[Norauto] Fetching data from API (Forced)...");
+
 		const response = await fetch(targetUrl, {
 			method: "GET",
 			headers: headers as any,
 		});
 
 		if (!response.ok) {
-			const errorText = await response.text();
-			console.log(`API Error Status: ${response.status}`);
-			throw new Error(`Erreur API Externe: ${response.status}`);
+			throw new Error(`Norauto API Error: ${response.status} ${response.statusText}`);
 		}
 
 		const data = await response.json();
 
-		console.log(`Response received successfully.`);
-		console.log(`Request for VIN ${vin} completed. \n***********/`);
+		// Sauvegarde JSON
+		await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
+		console.log(`[Norauto] Response saved to ${filePath}`);
+		console.log(`[Norauto] Request completed successfully. \n***********/`);
+
+		// Log Access
+		const logEntry = `${new Date().toISOString()} - VIN: ${vin} - Status: ${response.status} - URL: ${targetUrl} \n`;
+		await fs.appendFile(accessLogPath, logEntry, "utf8");
 
 		return NextResponse.json(data);
 	} catch (error: any) {
-		console.error(`Error fetching data for VIN ${vin}:`, error.message);
-		console.log(`***********/`);
+		console.error(`[Norauto] Error fetching data for VIN ${vin}:`, error.message);
 
-		return NextResponse.json(
-			{ error: "An error occurred during the request." },
-			{ status: 500 },
-		);
+		// Log Error
+		const errorLogEntry = `${new Date().toISOString()} - Error: ${error.message}\n`;
+		try {
+			await fs.appendFile(errorLogPath, errorLogEntry, "utf8");
+		} catch (e) {
+			console.error("Could not write to error log");
+		}
+
+		return NextResponse.json({ error: "An error occurred with Norauto API." }, { status: 500 });
 	}
 }
