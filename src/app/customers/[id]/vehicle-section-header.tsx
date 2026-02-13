@@ -11,7 +11,7 @@ export function VehicleSectionHeader({ customerId }: { customerId: string }) {
 	return (
 		<>
 			<div className="mb-2 flex items-center justify-between lg:mb-4">
-				<h2 className="text-2xl font-bold tracking-tight">Véhicules</h2>
+				<h2 className="text-lg font-semibold tracking-tight lg:text-lg">Véhicules</h2>
 				<Button
 					variant="outline"
 					size="icon"

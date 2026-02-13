@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -11,16 +12,14 @@ export default function Page() {
 	const [data, setData] = useState<any>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+	const searchParams = useSearchParams();
 
-	const lancerRecherche = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!plate) return;
-
+	const fetchVehicleData = async (plateToSearch: string) => {
 		setLoading(true);
 		setError("");
 		setData(null);
 
-		const cleanPlate = plate.replace(/[^a-zA-Z0-9]/g, "");
+		const cleanPlate = plateToSearch.replace(/[^a-zA-Z0-9]/g, "");
 
 		try {
 			const [resVin, resSlug] = await Promise.all([
@@ -58,6 +57,20 @@ export default function Page() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	useEffect(() => {
+		const queryPlate = searchParams.get("plate");
+		if (queryPlate) {
+			setPlate(queryPlate);
+			fetchVehicleData(queryPlate);
+		}
+	}, [searchParams]);
+
+	const lancerRecherche = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!plate) return;
+		await fetchVehicleData(plate);
 	};
 
 	const getFeature = (name: string) => {
@@ -125,11 +138,10 @@ export default function Page() {
 								<div className="flex flex-col md:flex-row">
 									<div className="flex items-center justify-center border-b bg-slate-50 p-6 md:w-1/3 md:border-r md:border-b-0">
 										{data.thumbnailUrl ? (
-											// eslint-disable-next-line @next/next/no-img-element
 											<img
 												src={data.thumbnailUrl}
 												alt="Voiture"
-												className="max-h-48 object-contain mix-blend-multiply"
+												className="object-fit max-h-48 mix-blend-multiply"
 											/>
 										) : (
 											<Car className="h-24 w-24 text-slate-300" />
@@ -153,6 +165,7 @@ export default function Page() {
 													Slug Manquant
 												</span>
 											)}
+											<span>Slug Maker Result :</span>
 										</div>
 										<h2 className="mb-2 text-3xl font-bold text-slate-900">
 											{data.commercialModel}
@@ -166,7 +179,7 @@ export default function Page() {
 							</div>
 
 							{/* Carte Technique */}
-							<div className="rounded-xl border bg-white p-5 shadow-sm">
+							<div className="rounded-xl border bg-white p-5 shadow-sm sm:mb-15">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Gauge className="h-5 w-5 text-blue-600" />
 									<span>Motorisation</span>
@@ -209,7 +222,7 @@ export default function Page() {
 							</div>
 
 							{/* Carte Transmission & Châssis */}
-							<div className="rounded-xl border bg-white p-5 shadow-sm">
+							<div className="mb-0 rounded-xl border bg-white p-5 shadow-sm sm:mb-15">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Settings className="h-5 w-5 text-blue-600" />
 									<span>Transmission & Châssis</span>
@@ -250,7 +263,7 @@ export default function Page() {
 							</div>
 
 							{/* Carte Infos Légales */}
-							<div className="rounded-xl border bg-white p-5 shadow-sm">
+							<div className="mb-15 rounded-xl border bg-white p-5 shadow-sm">
 								<div className="mb-4 flex items-center gap-2 border-b pb-2 font-semibold text-slate-800">
 									<Calendar className="h-5 w-5 text-blue-600" />
 									<span>Dates & Divers</span>
@@ -289,18 +302,6 @@ export default function Page() {
 								</div>
 							</div>
 						</div>
-					)}
-
-					{/* Debug Raw Data */}
-					{data && (
-						<details className="mt-8 text-xs text-slate-400">
-							<summary className="mb-2 cursor-pointer">
-								Voir les données brutes JSON
-							</summary>
-							<pre className="max-h-40 overflow-auto rounded bg-slate-900 p-4 text-slate-50">
-								{JSON.stringify(data, null, 2)}
-							</pre>
-						</details>
 					)}
 				</div>
 			</SidebarInset>

@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ vin:
 			"s5ZN/o0rpHd8v2W/Y3vEJg==:TCbaQBOgNvp6LG2lghW0o8cQXIKHSBpprBzm3AihmFUtiL2YZFvoGeFaqCGn+FaD",
 		origin: "https://www.feuvert.fr",
 		connection: "keep-alive",
-		cookie: "datadome=DsP5x7XGsgllyZWyshwnZF6lp~xpqX_wlDxzrZJ_j3YncV3QhDbsD0jp2r4dGqrfjViIxTysrL~gsg4Qh5NZjpaNkBIiiGhePp~wCGcaIoKEOosKlETZ4Hr24JPKx50h; eeb_master=ddf99a17-fb88-4af9-9baa-9df38e8ab2ee; eeb_csrf=9814c3b4-822a-4039-b049-2e03b75e1051; session-affinity-fv3=1770712794.988.33907.912536|c9dfd244d691f7869ebe107c50658509; _pcid=1bbb4262-2868-7239-67ba-4bf883ec5d08; _pcid_creation_date=2026-02-10T00%3A00%3A00.000Z; ty_session=true; ty_id=6d5604e3-875c-505c-116d-c44554d20c6b; ty_ead=eyJjdXJyZW50Q2FtcGFpZ24iOnsiZGF0ZSI6MTc3MDcxMjc5NjMzNCwicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInRhcmdldCI6Imh0dHBzOi8vd3d3LmZldXZlcnQuZnIvY2VudHJlcy1hdXRvL3Zhbm5lcy9mZXUtdmVydC12YW5uZXMvMTQ4Lmh0bWw%2FdXRtX2NhbXBhaWduPWJvdXRvbl9zaXRlX2dtYiZ1dG1fbWVkaXVtPW9yZ2FuaWMmdXRtX3NvdXJjZT1nbWIifSwicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInRhcmdldCI6Imh0dHBzOi8vd3d3LmZldXZlcnQuZnIvY2VudHJlcy1hdXRvL3Zhbm5lcy9mZXUtdmVydC12YW5uZXMvMTQ4Lmh0bWw%2FdXRtX2NhbXBhaWduPWJvdXRvbl9zaXRlX2dtYiZ1dG1fbWVkaXVtPW9yZ2FuaWMmdXRtX3NvdXJjZT1nbWIifQ%3D%3D",
+		cookie: "datadome=gXUh1_KwgsYVY03RmQoEVZspqtcBGXGyNEML60emwEzChRXrhDDpWIQ4N9xfxG9mmxTizW6IQ16XMjQEzH6UFpF3Wv5lyy~3odEyq2Jt5vWXeQy8unuYKv9xH2JuKp0l; eeb_master=ddf99a17-fb88-4af9-9baa-9df38e8ab2ee; eeb_csrf=9814c3b4-822a-4039-b049-2e03b75e1051; _pcid=1bbb4262-2868-7239-67ba-4bf883ec5d08; _pcid_creation_date=2026-02-10T00%3A00%3A00.000Z; ty_id=6d5604e3-875c-505c-116d-c44554d20c6b; ty_ead=eyJjdXJyZW50Q2FtcGFpZ24iOnsiZGF0ZSI6MTc3MDk3MjU1ODYzNywicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInRhcmdldCI6Imh0dHBzOi8vd3d3LmZldXZlcnQuZnIvIn0sInJlZmVycmVyIjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8iLCJ0YXJnZXQiOiJodHRwczovL3d3dy5mZXV2ZXJ0LmZyLyJ9; session-affinity-fv3=1770972544.358.33685.930060|c9dfd244d691f7869ebe107c50658509; ty_session=true",
 		"sec-fetch-dest": "empty",
 		"sec-fetch-mode": "cors",
 		"sec-fetch-site": "same-site",
@@ -32,13 +32,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ vin:
 	try {
 		const response = await fetch(targetUrl, {
 			method: "GET",
-			headers: headers as any, // Casting pour TypeScript
+			headers: headers as any,
 		});
 
 		if (!response.ok) {
 			const errorText = await response.text();
 			console.log(`API Error Status: ${response.status}`);
-			console.log(`API Error Body: ${errorText.slice(0, 200)}`); // Log le début de l'erreur pour debug
 			throw new Error(`Erreur API Externe: ${response.status}`);
 		}
 

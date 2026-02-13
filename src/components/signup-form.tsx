@@ -59,9 +59,9 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 	return (
 		<Card {...props}>
 			<CardHeader>
-				<CardTitle>Create an account</CardTitle>
+				<CardTitle>Créer un compte</CardTitle>
 				<CardDescription>
-					Enter your information below to create your account
+					Remplissez les informations ci-dessous pour créer votre compte
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -73,7 +73,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 					)}
 					<FieldGroup>
 						<Field>
-							<FieldLabel htmlFor="name">Full Name</FieldLabel>
+							<FieldLabel htmlFor="name">Nom complet</FieldLabel>
 							<Input
 								id="name"
 								name="name"
@@ -92,34 +92,37 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 								required
 							/>
 							<FieldDescription>
-								We&apos;ll use this to contact you. We will not share your email
-								with anyone else.
+								Utilisé pour vous contacter. Votre email ne sera jamais partagé.
 							</FieldDescription>
 						</Field>
 						<Field>
 							<FieldLabel htmlFor="password">Password</FieldLabel>
 							<Input id="password" name="password" type="password" required />
-							<FieldDescription>Must be at least 8 characters long.</FieldDescription>
+							<FieldDescription>8 caractères minimum..</FieldDescription>
 						</Field>
 						<Field>
-							<FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+							<FieldLabel htmlFor="confirm-password">
+								Confirmer le mot de passe
+							</FieldLabel>
 							<Input
 								id="confirm-password"
 								name="confirm-password"
 								type="password"
 								required
 							/>
-							<FieldDescription>Please confirm your password.</FieldDescription>
+							<FieldDescription>
+								Veuillez confirmer votre mot de passe.
+							</FieldDescription>
 						</Field>
 						<FieldGroup>
 							<Field>
 								<Button type="submit" disabled={formStatus?.type === "loading"}>
 									{formStatus?.type === "loading"
-										? "Creating account..."
-										: "Sign Up"}
+										? "Création en cours..."
+										: "S\u2019inscrire"}
 								</Button>
 								<FieldDescription className="px-6 text-center">
-									Already have an account? <a href="/auth/login">Sign in</a>
+									Déjà un compte? <a href="/auth/login">Se connecter</a>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>

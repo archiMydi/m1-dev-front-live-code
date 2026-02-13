@@ -1,542 +1,239 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { appointmentsService, Mission } from "@/app/services/appointments.service";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Calendar, Clock, User, Car, Wrench, Euro } from "lucide-react";
+
+// TODO: Remplacer par un vrai fetch depuis la BDD
+const missions = [
+	{
+		id: 1,
+		title: "Vidange + Filtres",
+		vehicleId: 1,
+		userId: 1,
+		customerId: 1,
+		start: "2026-02-13T09:00:00",
+		end: "2026-02-13T11:00:00",
+		parts: [1, 2],
+		totalPrice: 79.98,
+		status: "planned",
+	},
+	{
+		id: 2,
+		title: "Changement plaquettes",
+		vehicleId: 2,
+		userId: 2,
+		customerId: 2,
+		start: "2026-02-13T13:00:00",
+		end: "2026-02-13T15:00:00",
+		parts: [2],
+		totalPrice: 49.99,
+		status: "in-progress",
+	},
+];
+
+const users = [
+	{ id: 1, name: "Alice Dupont" },
+	{ id: 2, name: "Bob Martin" },
+	{ id: 3, name: "Charlie Durand" },
+];
+
+const customers = [
+	{ id: 1, name: "Jean Lefèvre" },
+	{ id: 2, name: "Marie Blanc" },
+	{ id: 3, name: "Pierre Noir" },
+];
 
 const vehicles = [
-	{ id: 1, name: "Toyota Corolla (VIN123456)" },
-	{ id: 2, name: "Peugeot 308 (VIN789012)" },
+	{ id: 1, plate: "AB-123-CD", model: "Toyota Corolla" },
+	{ id: 2, plate: "EF-456-GH", model: "Peugeot 308" },
 ];
+
+const parts = [
+	{ id: 1, name: "Filtre à huile", price: 29.99 },
+	{ id: 2, name: "Plaquettes de frein", price: 49.99 },
+	{ id: 3, name: "Batterie", price: 89.99 },
+];
+
+const statusLabels: Record<
+	string,
+	{ label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+	planned: { label: "Planifiée", variant: "outline" },
+	"in-progress": { label: "En cours", variant: "default" },
+	completed: { label: "Terminée", variant: "secondary" },
+	cancelled: { label: "Annulée", variant: "destructive" },
+};
 
 export default function MissionDetails() {
 	const params = useParams();
 	const router = useRouter();
-	const [mission, setMission] = useState<Mission | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [isEditing, setIsEditing] = useState(false);
-	const [editFormData, setEditFormData] = useState({
-		vehicleId: "",
-		startDate: "",
-		startTime: "",
-		endDate: "",
-		endTime: "",
-		totalPrice: "",
-		parts: [] as { id?: number; name: string; price: string }[],
-	});
-
 	const missionId = parseInt(params.id as string);
 
-	useEffect(() => {
-		loadMission();
-	}, [missionId]);
-
-	const loadMission = async () => {
-		try {
-			setLoading(true);
-			const data = await appointmentsService.getById(missionId);
-			if (data) {
-				setMission(data);
-				initializeEditForm(data);
-			}
-		} catch (error) {
-			console.error("Erreur lors du chargement:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const initializeEditForm = (m: Mission) => {
-		const startDate = new Date(m.startDate);
-		const endDate = new Date(m.endDate);
-
-		setEditFormData({
-			vehicleId: m.vehicleId.toString(),
-			startDate: startDate.toISOString().split("T")[0],
-			startTime: `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}`,
-			endDate: endDate.toISOString().split("T")[0],
-			endTime: `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`,
-			totalPrice: m.totalPrice.toString(),
-			parts: m.parts.map((p) => ({
-				id: p.id,
-				name: p.name,
-				price: p.price.toString(),
-			})),
-		});
-	};
-
-	const handleUpdateMission = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (
-			!editFormData.vehicleId ||
-			!editFormData.startDate ||
-			!editFormData.endDate ||
-			!editFormData.totalPrice
-		) {
-			alert("Veuillez remplir tous les champs obligatoires");
-			return;
-		}
-
-		try {
-			const startDate = new Date(`${editFormData.startDate}T${editFormData.startTime}`);
-			const endDate = new Date(`${editFormData.endDate}T${editFormData.endTime}`);
-
-			await appointmentsService.update(missionId, {
-				startDate,
-				endDate,
-				vehicleId: parseInt(editFormData.vehicleId),
-				totalPrice: parseFloat(editFormData.totalPrice),
-				parts: editFormData.parts.map((part) => ({
-					name: part.name || "Sans nom",
-					price: parseFloat(part.price) || 0,
-				})),
-			});
-
-			await loadMission();
-			setIsEditing(false);
-		} catch (error) {
-			console.error("Erreur lors de la mise à jour:", error);
-			alert("Erreur lors de la mise à jour de la mission");
-		}
-	};
-
-	const handleDeleteMission = async () => {
-		if (!confirm("Êtes-vous sûr de vouloir supprimer cette mission ?")) {
-			return;
-		}
-
-		try {
-			await appointmentsService.delete(missionId);
-			router.push("/appointments");
-		} catch (error) {
-			console.error("Erreur lors de la suppression:", error);
-			alert("Erreur lors de la suppression de la mission");
-		}
-	};
-
-	const handleAddPart = () => {
-		setEditFormData({
-			...editFormData,
-			parts: [...editFormData.parts, { name: "", price: "" }],
-		});
-	};
-
-	const handleRemovePart = (index: number) => {
-		setEditFormData({
-			...editFormData,
-			parts: editFormData.parts.filter((_, i) => i !== index),
-		});
-	};
-
-	const handlePartChange = (index: number, field: "name" | "price", value: string) => {
-		const newParts = [...editFormData.parts];
-		newParts[index] = { ...newParts[index], [field]: value };
-		setEditFormData({ ...editFormData, parts: newParts });
-	};
-
-	if (loading) {
-		return <div className="flex min-h-screen items-center justify-center">Chargement...</div>;
-	}
+	const mission = missions.find((m) => m.id === missionId);
 
 	if (!mission) {
 		return (
-			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
+			<div className="flex flex-col items-center justify-center gap-4 py-12">
 				<h1 className="text-2xl font-bold">Mission non trouvée</h1>
-				<Link href="/appointments">
-					<Button>Retour au calendrier</Button>
-				</Link>
+				<Button onClick={() => router.push("/appointments")} variant="outline">
+					<ArrowLeft className="mr-2 h-4 w-4" />
+					Retour au planning
+				</Button>
 			</div>
 		);
 	}
 
+	const user = users.find((u) => u.id === mission.userId);
+	const customer = customers.find((c) => c.id === mission.customerId);
+	const vehicle = vehicles.find((v) => v.id === mission.vehicleId);
+	const missionParts = mission.parts
+		.map((pId) => parts.find((p) => p.id === pId))
+		.filter(Boolean);
+
+	const startDate = new Date(mission.start);
+	const endDate = new Date(mission.end);
+
+	const formatDate = (date: Date) =>
+		date.toLocaleDateString("fr-FR", {
+			weekday: "long",
+			day: "numeric",
+			month: "long",
+			year: "numeric",
+		});
+	const formatTime = (date: Date) =>
+		date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+	const status = statusLabels[mission.status] || statusLabels.planned;
+
 	return (
-		<div className="mx-auto max-w-2xl space-y-6">
+		<div className="mx-auto max-w-3xl space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div>
-					<Link
-						href="/appointments"
-						className="mb-2 inline-block text-blue-600 hover:underline"
-					>
-						← Retour au calendrier
-					</Link>
-					<h1 className="text-3xl font-bold">
-						Mission #{mission.id} - {mission.vehicle?.marque} {mission.vehicle?.model}
-					</h1>
+			<div className="flex items-center gap-4">
+				<Button onClick={() => router.push("/appointments")} variant="ghost" size="icon">
+					<ArrowLeft className="h-5 w-5" />
+				</Button>
+				<div className="flex-1">
+					<h1 className="text-3xl font-bold">{mission.title}</h1>
+					<p className="text-muted-foreground">Mission #{mission.id}</p>
 				</div>
-
-				<div className="flex gap-2">
-					<Dialog open={isEditing} onOpenChange={setIsEditing}>
-						<DialogTrigger asChild>
-							<Button variant="outline">Modifier</Button>
-						</DialogTrigger>
-						<DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
-							<DialogHeader>
-								<DialogTitle>Modifier la mission</DialogTitle>
-								<DialogDescription>
-									Mettez à jour les informations de la mission
-								</DialogDescription>
-							</DialogHeader>
-
-							<form onSubmit={handleUpdateMission} className="space-y-4">
-								{/* Véhicule */}
-								<div className="space-y-2">
-									<Label htmlFor="vehicle">Véhicule *</Label>
-									<Select
-										value={editFormData.vehicleId}
-										onValueChange={(value) =>
-											setEditFormData({
-												...editFormData,
-												vehicleId: value,
-											})
-										}
-									>
-										<SelectTrigger id="vehicle">
-											<SelectValue placeholder="Sélectionner un véhicule" />
-										</SelectTrigger>
-										<SelectContent>
-											{vehicles.map((v) => (
-												<SelectItem key={v.id} value={v.id.toString()}>
-													{v.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-
-								{/* Date et heure de début */}
-								<div className="grid grid-cols-2 gap-2">
-									<div className="space-y-2">
-										<Label htmlFor="startDate">Date début *</Label>
-										<Input
-											id="startDate"
-											type="date"
-											value={editFormData.startDate}
-											onChange={(e) =>
-												setEditFormData({
-													...editFormData,
-													startDate: e.target.value,
-												})
-											}
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="startTime">Heure début *</Label>
-										<Input
-											id="startTime"
-											type="time"
-											value={editFormData.startTime}
-											onChange={(e) =>
-												setEditFormData({
-													...editFormData,
-													startTime: e.target.value,
-												})
-											}
-											required
-										/>
-									</div>
-								</div>
-
-								{/* Date et heure de fin */}
-								<div className="grid grid-cols-2 gap-2">
-									<div className="space-y-2">
-										<Label htmlFor="endDate">Date fin *</Label>
-										<Input
-											id="endDate"
-											type="date"
-											value={editFormData.endDate}
-											onChange={(e) =>
-												setEditFormData({
-													...editFormData,
-													endDate: e.target.value,
-												})
-											}
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="endTime">Heure fin *</Label>
-										<Input
-											id="endTime"
-											type="time"
-											value={editFormData.endTime}
-											onChange={(e) =>
-												setEditFormData({
-													...editFormData,
-													endTime: e.target.value,
-												})
-											}
-											required
-										/>
-									</div>
-								</div>
-
-								{/* Pièces */}
-								<div className="space-y-2">
-									<Label>Pièces nécessaires</Label>
-									<div className="max-h-40 space-y-2 overflow-y-auto">
-										{editFormData.parts.map((part, index) => (
-											<div key={index} className="flex gap-2">
-												<Input
-													placeholder="Nom de la pièce"
-													value={part.name}
-													onChange={(e) =>
-														handlePartChange(
-															index,
-															"name",
-															e.target.value,
-														)
-													}
-													className="flex-1"
-												/>
-												<Input
-													placeholder="Prix"
-													type="number"
-													step="0.01"
-													value={part.price}
-													onChange={(e) =>
-														handlePartChange(
-															index,
-															"price",
-															e.target.value,
-														)
-													}
-													className="w-20"
-												/>
-												<Button
-													type="button"
-													variant="ghost"
-													size="sm"
-													onClick={() => handleRemovePart(index)}
-												>
-													✕
-												</Button>
-											</div>
-										))}
-									</div>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleAddPart}
-										className="w-full"
-									>
-										+ Ajouter une pièce
-									</Button>
-								</div>
-
-								{/* Prix total */}
-								<div className="space-y-2">
-									<Label htmlFor="totalPrice">Prix total *</Label>
-									<Input
-										id="totalPrice"
-										type="number"
-										step="0.01"
-										placeholder="0.00"
-										value={editFormData.totalPrice}
-										onChange={(e) =>
-											setEditFormData({
-												...editFormData,
-												totalPrice: e.target.value,
-											})
-										}
-										required
-									/>
-								</div>
-
-								{/* Boutons */}
-								<div className="flex gap-2 pt-4">
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => setIsEditing(false)}
-										className="flex-1"
-									>
-										Annuler
-									</Button>
-									<Button type="submit" className="flex-1">
-										Mettre à jour
-									</Button>
-								</div>
-							</form>
-						</DialogContent>
-					</Dialog>
-
-					<Button variant="destructive" onClick={handleDeleteMission}>
-						Supprimer
-					</Button>
-				</div>
+				<Badge variant={status.variant}>{status.label}</Badge>
 			</div>
 
-			{/* Informations principales */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Informations du véhicule</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-3">
-					<div>
-						<p className="text-sm text-gray-600">Marque et modèle</p>
-						<p className="text-lg font-semibold">
-							{mission.vehicle?.marque} {mission.vehicle?.model}
-						</p>
-					</div>
-					<div>
-						<p className="text-sm text-gray-600">Numéro VIN</p>
-						<p className="font-mono text-sm">{mission.vehicle?.vin}</p>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Horaires */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Horaires</CardTitle>
-				</CardHeader>
-				<CardContent className="grid grid-cols-2 gap-6">
-					<div>
-						<p className="mb-1 text-sm text-gray-600">Début</p>
-						<p className="font-semibold">
-							{mission.startDate.toLocaleDateString("fr-FR", {
-								weekday: "long",
-								year: "numeric",
-								month: "long",
-								day: "numeric",
-							})}
-						</p>
-						<p className="text-lg font-bold text-blue-600">
-							{new Date(mission.startDate).toLocaleTimeString("fr-FR", {
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-					</div>
-					<div>
-						<p className="mb-1 text-sm text-gray-600">Fin</p>
-						<p className="font-semibold">
-							{mission.endDate.toLocaleDateString("fr-FR", {
-								weekday: "long",
-								year: "numeric",
-								month: "long",
-								day: "numeric",
-							})}
-						</p>
-						<p className="text-lg font-bold text-green-600">
-							{new Date(mission.endDate).toLocaleTimeString("fr-FR", {
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Pièces */}
-			{mission.parts.length > 0 && (
+			{/* Mission Info */}
+			<div className="grid gap-4 md:grid-cols-2">
+				{/* Date & Heure */}
 				<Card>
-					<CardHeader>
-						<CardTitle>Pièces nécessaires</CardTitle>
+					<CardHeader className="pb-2">
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<Calendar className="h-5 w-5" />
+							Date & Horaires
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<p className="capitalize">{formatDate(startDate)}</p>
+						<p className="text-muted-foreground flex items-center gap-2">
+							<Clock className="h-4 w-4" />
+							{formatTime(startDate)} - {formatTime(endDate)}
+						</p>
+					</CardContent>
+				</Card>
+
+				{/* Technicien */}
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<User className="h-5 w-5" />
+							Technicien
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
-							{mission.parts.map((part, index) => (
+						<p className="font-medium">{user?.name || "Non assigné"}</p>
+					</CardContent>
+				</Card>
+
+				{/* Client */}
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<User className="h-5 w-5" />
+							Client
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="font-medium">{customer?.name || "N/A"}</p>
+					</CardContent>
+				</Card>
+
+				{/* Véhicule */}
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<Car className="h-5 w-5" />
+							Véhicule
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p className="font-medium">{vehicle?.model || "N/A"}</p>
+						<p className="text-muted-foreground">{vehicle?.plate || "N/A"}</p>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Pièces */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Wrench className="h-5 w-5" />
+						Pièces utilisées
+					</CardTitle>
+					<CardDescription>
+						{missionParts.length} pièce{missionParts.length > 1 ? "s" : ""}
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{missionParts.length > 0 ? (
+						<div className="space-y-2">
+							{missionParts.map((part) => (
 								<div
-									key={part.id}
-									className="flex items-center justify-between border-b pb-3 last:border-b-0"
+									key={part!.id}
+									className="bg-muted flex justify-between rounded-md px-3 py-2"
 								>
-									<div>
-										<p className="font-semibold">{part.name}</p>
-										<p className="text-sm text-gray-600">Pièce #{index + 1}</p>
-									</div>
-									<p className="text-lg font-bold text-blue-600">
-										{part.price.toFixed(2)}€
-									</p>
+									<span>{part!.name}</span>
+									<span className="font-medium">{part!.price.toFixed(2)} €</span>
 								</div>
 							))}
 						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Résumé financier */}
-			<Card className="border-blue-200 bg-linear-to-r from-blue-50 to-blue-100">
-				<CardHeader>
-					<CardTitle>Résumé financier</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{mission.parts.length > 0 && (
-						<>
-							<div className="flex justify-between">
-								<span>Nombre de pièces</span>
-								<span className="font-semibold">{mission.parts.length}</span>
-							</div>
-							<div className="flex justify-between">
-								<span>Coût des pièces</span>
-								<span className="font-semibold">
-									{mission.parts.reduce((sum, p) => sum + p.price, 0).toFixed(2)}€
-								</span>
-							</div>
-							<div className="mt-2 border-t pt-2" />
-						</>
+					) : (
+						<p className="text-muted-foreground">Aucune pièce enregistrée</p>
 					)}
-					<div className="flex items-center justify-between text-xl">
-						<span className="font-bold">Prix total</span>
-						<span className="text-3xl font-bold text-blue-600">
-							{mission.totalPrice.toFixed(2)}€
-						</span>
-					</div>
 				</CardContent>
 			</Card>
 
-			{/* Informations système */}
-			<Card className="bg-gray-50">
+			{/* Prix total */}
+			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm">Informations système</CardTitle>
+					<CardTitle className="flex items-center gap-2">
+						<Euro className="h-5 w-5" />
+						Prix total
+					</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-1 text-sm text-gray-600">
-					<p>
-						Créé le:{" "}
-						{mission.createdAt.toLocaleDateString("fr-FR", {
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-							hour: "2-digit",
-							minute: "2-digit",
-						})}
-					</p>
-					<p>
-						Mis à jour le:{" "}
-						{mission.updatedAt.toLocaleDateString("fr-FR", {
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-							hour: "2-digit",
-							minute: "2-digit",
-						})}
-					</p>
+				<CardContent>
+					<p className="text-3xl font-bold">{mission.totalPrice.toFixed(2)} €</p>
 				</CardContent>
 			</Card>
+
+			{/* Actions */}
+			<div className="flex gap-4">
+				<Button variant="outline" className="flex-1">
+					Modifier
+				</Button>
+				<Button variant="destructive" className="flex-1">
+					Supprimer
+				</Button>
+			</div>
 		</div>
 	);
 }

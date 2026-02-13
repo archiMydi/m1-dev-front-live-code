@@ -6,7 +6,24 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { IconPlus, IconChevronRight, IconSearch } from "@tabler/icons-react";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+	IconPlus,
+	IconChevronRight,
+	IconSearch,
+	IconCar,
+	IconMapPin,
+	IconMail,
+} from "@tabler/icons-react";
 import { trpc } from "@/trpc/client";
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -42,7 +59,7 @@ export default function Page() {
 		setDebounceTimeout(timeout);
 	}
 
-	const { data: results, isLoading } = trpc.searchCustomer.useQuery({
+	const { data: results, isLoading } = trpc.customers.search.useQuery({
 		q: query,
 	});
 
@@ -107,8 +124,123 @@ export default function Page() {
 						)}
 					</div>
 
-					<div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-						<ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+					<div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+						{/* Desktop Table Query Wrapper */}
+						<div className="hidden md:block">
+							<Table>
+								<TableHeader>
+									<TableRow className="bg-zinc-50 hover:bg-zinc-50 dark:bg-zinc-900/50 dark:hover:bg-zinc-900/50">
+										<TableHead className="w-75">Client</TableHead>
+										<TableHead>Contact</TableHead>
+										<TableHead>Véhicules</TableHead>
+										<TableHead className="text-right"></TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{results != null ? (
+										results.length > 0 ? (
+											results.map((customer) => (
+												<TableRow
+													key={customer.id}
+													className="group cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+													onClick={() =>
+														router.push(`/customers/${customer.id}`)
+													}
+												>
+													<TableCell>
+														<div className="flex items-center gap-3">
+															<Avatar className="h-10 w-10 border border-zinc-200 dark:border-zinc-800">
+																<AvatarImage
+																	src={`https://api.dicebear.com/9.x/initials/svg?seed=${customer.firstName} ${customer.name}`}
+																	alt={`${customer.firstName} ${customer.name}`}
+																/>
+																<AvatarFallback>
+																	{customer.firstName[0]}
+																	{customer.name[0]}
+																</AvatarFallback>
+															</Avatar>
+															<div className="flex flex-col">
+																<span className="group-hover:text-primary text-base font-semibold text-zinc-900 transition-colors dark:text-zinc-100">
+																	{customer.name}{" "}
+																	{customer.firstName}
+																</span>
+																<span className="text-sm text-zinc-500 dark:text-zinc-400">
+																	ID: {customer.id} |{" "}
+																	<span className="inline-flex items-center gap-1">
+																		<IconMapPin className="size-3" />{" "}
+																		{customer.city}
+																	</span>
+																</span>
+															</div>
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className="flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+															<span className="flex items-center gap-2">
+																<IconMail className="size-4 opacity-70" />
+																{customer.email}
+															</span>
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className="flex flex-wrap gap-2">
+															{customer.vehicles.length > 0 ? (
+																customer.vehicles.map((v, i) => (
+																	<Badge
+																		key={i}
+																		variant="secondary"
+																		className="border-zinc-200 font-normal dark:border-zinc-800"
+																	>
+																		<IconCar className="mr-1 size-3 opacity-70" />
+																		{v.plate}
+																	</Badge>
+																))
+															) : (
+																<span className="text-sm text-zinc-400 italic">
+																	Aucun véhicule
+																</span>
+															)}
+														</div>
+													</TableCell>
+													<TableCell className="text-right">
+														<Button
+															variant="ghost"
+															size="icon"
+															className="text-muted-foreground group-hover:text-primary"
+														>
+															<IconChevronRight className="size-5" />
+														</Button>
+													</TableCell>
+												</TableRow>
+											))
+										) : (
+											<TableRow>
+												<TableCell
+													colSpan={4}
+													className="text-muted-foreground h-24 text-center"
+												>
+													Aucun résultat trouvé pour "{query}"
+												</TableCell>
+											</TableRow>
+										)
+									) : (
+										<TableRow>
+											<TableCell
+												colSpan={4}
+												className="text-muted-foreground h-24 text-center"
+											>
+												{isLoading
+													? "Chargement des clients..."
+													: "Recherchez un client"}
+											</TableCell>
+										</TableRow>
+									)}
+								</TableBody>
+							</Table>
+						</div>
+
+						{/* Mobile List View */}
+						<ul className="divide-y divide-zinc-200 md:hidden dark:divide-zinc-800">
 							{results != null ? (
 								results.map((customer) => (
 									<li key={customer.id}>
@@ -116,41 +248,61 @@ export default function Page() {
 											href={`/customers/${customer.id}`}
 											className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
 										>
-											<div className="flex flex-col">
-												<span className="font-medium">
-													{customer.name} {customer.firstName}
-												</span>
-												<span className="text-muted-foreground text-xs italic">
+											<div className="flex flex-col gap-1">
+												<div className="flex items-center gap-3">
+													<Avatar className="h-10 w-10 border border-zinc-200 dark:border-zinc-800">
+														<AvatarImage
+															src={`https://api.dicebear.com/9.x/initials/svg?seed=${customer.firstName} ${customer.name}`}
+															alt={`${customer.firstName} ${customer.name}`}
+														/>
+														<AvatarFallback>
+															{customer.firstName[0]}
+															{customer.name[0]}
+														</AvatarFallback>
+													</Avatar>
+													<div className="flex flex-col">
+														<span className="text-base font-semibold">
+															{customer.name} {customer.firstName}
+														</span>
+														<span className="text-muted-foreground flex items-center gap-1 text-xs">
+															<IconMapPin className="size-3" />
+															{customer.city}
+														</span>
+														<span className="text-muted-foreground flex items-center gap-1 text-xs">
+															<IconMail className="size-3" />
+															{customer.email}
+														</span>
+													</div>
+												</div>
+												<div className="mt-2 flex flex-wrap gap-2 pl-13 text-sm">
 													{customer.vehicles.length > 0 ? (
 														<>
 															{customer.vehicles
-																.slice(0, 2)
+																.slice(0, 3)
 																.map((v, i) => (
-																	<span key={i}>
-																		Véhicule {i + 1} : [
-																		{v.plate}]
-																		{i === 0 &&
-																			customer.vehicles
-																				.length > 1 &&
-																			", "}
-																	</span>
+																	<Badge
+																		key={i}
+																		variant="secondary"
+																		className="border-zinc-200 font-normal dark:border-zinc-800"
+																	>
+																		<IconCar className="mr-1 size-3 opacity-70" />
+																		{v.plate}
+																	</Badge>
 																))}
-															{customer.vehicles.length > 2 && (
-																<span>
-																	{" "}
-																	et{" "}
-																	{customer.vehicles.length -
-																		2}{" "}
-																	autres véhicules...
+															{customer.vehicles.length > 3 && (
+																<span className="text-muted-foreground self-center text-xs">
+																	+{customer.vehicles.length - 3}
 																</span>
 															)}
 														</>
 													) : (
-														"Aucun véhicule"
+														<span className="text-sm text-zinc-400 italic">
+															Aucun véhicule
+														</span>
 													)}
-												</span>
+												</div>
 											</div>
-											<IconChevronRight className="text-muted-foreground size-5" />
+											<IconChevronRight className="text-muted-foreground ml-2 size-5" />
 										</Link>
 									</li>
 								))

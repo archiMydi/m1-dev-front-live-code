@@ -5,10 +5,21 @@ export interface Vehicle {
 	vin: string;
 }
 
+export interface Part {
+	name: string;
+	price: number;
+}
+
 export interface Intervention {
-	date: string;
-	mileage: string;
+	id: string;
 	type: string;
+	startDate: string; // YYYY-MM-DD
+	startTime: string; // HH:mm
+	endDate: string; // YYYY-MM-DD
+	endTime: string; // HH:mm
+	vehiclePlate: string;
+	parts: Part[];
+	totalPrice: number;
 }
 
 export interface Customer {
@@ -19,7 +30,7 @@ export interface Customer {
 	postalcode: string;
 	city: string;
 	vehicles: Vehicle[];
-	lastIntervention: Intervention;
+	interventions: Intervention[];
 }
 
 export const customers: Customer[] = [
@@ -44,11 +55,33 @@ export const customers: Customer[] = [
 				vin: "VF14567890123456",
 			},
 		],
-		lastIntervention: {
-			date: "12/03/2024",
-			mileage: "45 000 km",
-			type: "Vidange + Filtres",
-		},
+		interventions: [
+			{
+				id: "int-1",
+				type: "Vidange + Filtres",
+				startDate: "2024-03-12",
+				startTime: "09:00",
+				endDate: "2024-03-12",
+				endTime: "10:30",
+				vehiclePlate: "AA-123-BB",
+				parts: [
+					{ name: "Huile 5W30", price: 45.0 },
+					{ name: "Filtre huile", price: 12.0 },
+				],
+				totalPrice: 107.0,
+			},
+			{
+				id: "int-2",
+				type: "Plaquettes de frein",
+				startDate: "2023-11-15",
+				startTime: "14:00",
+				endDate: "2023-11-15",
+				endTime: "15:30",
+				vehiclePlate: "CC-456-DD",
+				parts: [{ name: "Kit plaquettes AV", price: 89.0 }],
+				totalPrice: 149.0,
+			},
+		],
 	},
 	{
 		id: "2",
@@ -65,10 +98,22 @@ export const customers: Customer[] = [
 				vin: "VF74567890123456",
 			},
 		],
-		lastIntervention: {
-			date: "05/01/2024",
-			mileage: "12 500 km",
-			type: "Révision annuelle",
-		},
+		interventions: [
+			{
+				id: "int-3",
+				type: "Révision annuelle",
+				startDate: "2024-01-05",
+				startTime: "08:30",
+				endDate: "2024-01-05",
+				endTime: "17:00",
+				vehiclePlate: "EE-789-FF",
+				parts: [
+					{ name: "Filtre air", price: 15.0 },
+					{ name: "Filtre habitacle", price: 20.0 },
+					{ name: "Bougies", price: 40.0 },
+				],
+				totalPrice: 220.0,
+			},
+		],
 	},
 ];

@@ -58,6 +58,16 @@ const navMainData = {
 			url: "/appointments",
 			icon: IconSettings,
 		},
+		{
+			title: "Comptabilité",
+			url: "/accounting",
+			icon: IconSettings,
+		},
+		{
+			title: "Garage",
+			url: "/garage",
+			icon: IconSettings,
+		},
 	],
 };
 

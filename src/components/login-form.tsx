@@ -90,7 +90,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 										: "Se connecter"}
 								</Button>
 								<FieldDescription className="text-center">
-									Pas encore de compte ? <a href="/auth/register">Sign up</a>
+									Pas encore de compte ? <a href="/auth/register">S'inscrire</a>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>

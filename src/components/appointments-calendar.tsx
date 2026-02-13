@@ -1,53 +1,113 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { DayPilot, DayPilotCalendar } from "daypilot-pro-react";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { trpc } from "@/trpc/client";
-import { Day } from "react-day-picker";
+import AppointmentsModal from "@/components/appointments-modal";
 
-const vehicles = [
-	{ id: 1, name: "Toyota Corolla (VIN123456)" },
-	{ id: 2, name: "Peugeot 308 (VIN789012)" },
+// TODO: remplacer par un vrai fetch depuis la BDD
+const users = [
+	{ id: 1, name: "Alice Dupont" },
+	{ id: 2, name: "Bob Martin" },
+	{ id: 3, name: "Charlie Durand" },
 ];
 
+// TODO: remplacer par un vrai fetch depuis la BDD
+const customers = [
+	{ id: 1, name: "Jean Lefèvre" },
+	{ id: 2, name: "Marie Blanc" },
+	{ id: 3, name: "Pierre Noir" },
+];
+
+// TODO: remplacer par un vrai fetch depuis la BDD
+const missions = [
+	{
+		id: 1,
+		title: "Vidange + Filtres",
+		vehicleId: 1,
+		userId: 1,
+		customerId: 1,
+		start: "2026-02-13T09:00:00",
+		end: "2026-02-13T10:00:00",
+	},
+	{
+		id: 2,
+		title: "Changement plaquettes",
+		vehicleId: 2,
+		userId: 2,
+		customerId: 2,
+		start: "2026-02-13T13:00:00",
+		end: "2026-02-13T13:30:00",
+	},
+];
+
+// TODO: remplacer par un vrai fetch depuis la BDD
+const vehicles = [
+	{ id: 1, plate: "AB-123-CD", model: "Toyota Corolla" },
+	{ id: 2, plate: "EF-456-GH", model: "Peugeot 308" },
+];
+
+// TODO: remplacer par un vrai fetch depuis la BDD
+const parts = [
+	{ id: 1, name: "Filtre à huile", price: 29.99 },
+	{ id: 2, name: "Plaquettes de frein", price: 49.99 },
+	{ id: 3, name: "Batterie", price: 89.99 },
+];
+
+export type InitialDateTime = {
+	startDate: Date;
+	endDate: Date;
+} | null;
+
 export default function AppointmentsCalendar() {
-	const [showCreateDialog, setShowCreateDialog] = useState(false);
-	const [createDateTime, setCreateDateTime] = useState<{
-		date: Date;
-		hour: number;
-		minute: number;
-	} | null>(null);
+	const router = useRouter();
 	const calendarRef = useRef<DayPilotCalendar>(null);
+	const [showCreateDialog, setShowCreateDialog] = useState(false);
+	const [initialDateTime, setInitialDateTime] = useState<InitialDateTime>(null);
+
+	// Transformer les missions pour le format DayPilot avec HTML personnalisé
+	const calendarEvents = missions.map((mission) => {
+		const vehicle = vehicles.find((v) => v.id === mission.vehicleId);
+		const user = users.find((u) => u.id === mission.userId);
+		const customer = customers.find((c) => c.id === mission.customerId);
+
+		return {
+			id: mission.id,
+			start: mission.start,
+			end: mission.end,
+			text: mission.title,
+			html: `
+				<div class="px-2 py-1 text-sm text-white h-full">
+					<div class="font-semibold text-lg mb-4">${mission.title}</div>
+					<div><div class="text-sm leading-6 flex justify-between">🚗 <p class="text-center">${vehicle?.plate || "N/A"}</p></div></div>
+					<div><div class="text-sm leading-6 flex justify-between">🚗 <p class="text-center">${vehicle?.model || "N/A"}</p></div></div>
+					<div><div class="text-sm leading-6 flex justify-between">👤 <p class="text-center">${user?.name || "N/A"}</p></div></div>
+					<div><div class="text-sm leading-6 flex justify-between">🧑‍💼 <p class="text-center">${customer?.name || "N/A"}</p></div></div>
+				</div>
+			`,
+			backColor: "#3b82f6",
+			borderColor: "#2563eb",
+		};
+	});
 
 	const handleTimeRangeSelect = (args: any) => {
-		const startDate = args.start.toDate();
-		const hour = startDate.getHours();
-		const minute = startDate.getMinutes();
+		const startDate = new Date(args.start.value);
+		const endDate = new Date(args.end.value);
 
-		setCreateDateTime({
-			date: startDate,
-			hour,
-			minute,
-		});
+		setInitialDateTime({ startDate, endDate });
 		setShowCreateDialog(true);
+	};
+
+	const handleEventClick = (args: DayPilot.CalendarEventClickArgs) => {
+		const missionId = args.e.id();
+		router.push(`/appointments/${missionId}`);
+	};
+
+	const handleClose = () => {
+		setShowCreateDialog(false);
+		setInitialDateTime(null);
 	};
 
 	return (
@@ -58,16 +118,13 @@ export default function AppointmentsCalendar() {
 					<DialogTrigger asChild>
 						<Button>Nouvelle Mission</Button>
 					</DialogTrigger>
-					<CreateMissionDialog
-						initialDateTime={createDateTime}
-						onClose={() => {
-							setShowCreateDialog(false);
-							setCreateDateTime(null);
-						}}
-						onSuccess={() => {
-							setShowCreateDialog(false);
-							setCreateDateTime(null);
-						}}
+					<AppointmentsModal
+						initialDateTime={initialDateTime}
+						vehicles={vehicles}
+						users={users}
+						customers={customers}
+						parts={parts}
+						onClose={handleClose}
 					/>
 				</Dialog>
 			</div>
@@ -76,266 +133,17 @@ export default function AppointmentsCalendar() {
 				ref={calendarRef}
 				viewType="Week"
 				locale="fr-fr"
-				events={[]}
+				events={calendarEvents}
 				onTimeRangeSelect={handleTimeRangeSelect}
+				onEventClick={handleEventClick}
 				startDate={DayPilot.Date.today()}
 				durationBarVisible={false}
-				cellHeight={80}
+				cellHeight={150}
 				dayBeginsHour={9}
 				dayEndsHour={18}
+				eventMoveHandling="Disabled"
+				eventResizeHandling="Disabled"
 			/>
 		</div>
-	);
-}
-
-function CreateMissionDialog({
-	initialDateTime,
-	onClose,
-	onSuccess,
-}: {
-	initialDateTime: {
-		date: Date;
-		hour: number;
-		minute: number;
-	} | null;
-	onClose: () => void;
-	onSuccess: () => void;
-}) {
-	const createMissionMutation = trpc.missions.create.useMutation();
-
-	// Initialiser les heures de fin (start + 1h)
-	const getDefaultEndTime = () => {
-		if (!initialDateTime) return "10:00";
-		const endHour = (initialDateTime.hour + 1) % 24;
-		return `${String(endHour).padStart(2, "0")}:${String(initialDateTime.minute).padStart(2, "0")}`;
-	};
-
-	const [formData, setFormData] = useState({
-		vehicleId: "",
-		startDate: initialDateTime?.date.toISOString().split("T")[0] || "",
-		startTime: initialDateTime
-			? `${String(initialDateTime.hour).padStart(2, "0")}:${String(initialDateTime.minute).padStart(2, "0")}`
-			: "09:00",
-		endDate: initialDateTime?.date.toISOString().split("T")[0] || "",
-		endTime: getDefaultEndTime(),
-		totalPrice: "",
-		parts: [] as { name: string; price: string }[],
-	});
-
-	const [isLoading, setIsLoading] = useState(false);
-
-	const handleAddPart = () => {
-		setFormData({
-			...formData,
-			parts: [...formData.parts, { name: "", price: "" }],
-		});
-	};
-
-	const handleRemovePart = (index: number) => {
-		setFormData({
-			...formData,
-			parts: formData.parts.filter((_, i) => i !== index),
-		});
-	};
-
-	const handlePartChange = (index: number, field: "name" | "price", value: string) => {
-		const newParts = [...formData.parts];
-		newParts[index] = { ...newParts[index], [field]: value };
-		setFormData({ ...formData, parts: newParts });
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (
-			!formData.vehicleId ||
-			!formData.startDate ||
-			!formData.endDate ||
-			!formData.totalPrice
-		) {
-			alert("Veuillez remplir tous les champs obligatoires");
-			return;
-		}
-
-		try {
-			setIsLoading(true);
-
-			const startDate = new Date(`${formData.startDate}T${formData.startTime}`);
-			const endDate = new Date(`${formData.endDate}T${formData.endTime}`);
-
-			createMissionMutation.mutate(
-				{
-					vehicleId: parseInt(formData.vehicleId),
-					startDate,
-					endDate,
-					totalPrice: parseFloat(formData.totalPrice),
-				},
-				{ onSuccess },
-			);
-		} catch (error) {
-			console.error("Erreur lors de la création:", error);
-			alert("Erreur lors de la création de la mission");
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	return (
-		<DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
-			<DialogHeader>
-				<DialogTitle>Créer une nouvelle mission</DialogTitle>
-				<DialogDescription>Remplissez les informations de la mission</DialogDescription>
-			</DialogHeader>
-
-			<form onSubmit={handleSubmit} className="space-y-4">
-				{/* Véhicule */}
-				<div className="space-y-2">
-					<Label htmlFor="vehicle">Véhicule *</Label>
-					<Select
-						value={formData.vehicleId}
-						onValueChange={(value) => setFormData({ ...formData, vehicleId: value })}
-					>
-						<SelectTrigger id="vehicle">
-							<SelectValue placeholder="Sélectionner un véhicule" />
-						</SelectTrigger>
-						<SelectContent>
-							{vehicles.map((v) => (
-								<SelectItem key={v.id} value={v.id.toString()}>
-									{v.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				{/* Date et heure de début */}
-				<div className="grid grid-cols-2 gap-2">
-					<div className="space-y-2">
-						<Label htmlFor="startDate">Date début *</Label>
-						<Input
-							id="startDate"
-							type="date"
-							value={formData.startDate}
-							onChange={(e) =>
-								setFormData({ ...formData, startDate: e.target.value })
-							}
-							required
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="startTime">Heure début *</Label>
-						<Input
-							id="startTime"
-							type="time"
-							value={formData.startTime}
-							onChange={(e) =>
-								setFormData({ ...formData, startTime: e.target.value })
-							}
-							required
-						/>
-					</div>
-				</div>
-
-				{/* Date et heure de fin */}
-				<div className="grid grid-cols-2 gap-2">
-					<div className="space-y-2">
-						<Label htmlFor="endDate">Date fin *</Label>
-						<Input
-							id="endDate"
-							type="date"
-							value={formData.endDate}
-							onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-							required
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="endTime">Heure fin *</Label>
-						<Input
-							id="endTime"
-							type="time"
-							value={formData.endTime}
-							onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-							required
-						/>
-					</div>
-				</div>
-
-				{/* Pièces */}
-				<div className="space-y-2">
-					<Label>Pièces nécessaires</Label>
-					<div className="max-h-40 space-y-2 overflow-y-auto">
-						{formData.parts.map((part, index) => (
-							<div key={index} className="flex gap-2">
-								<Input
-									placeholder="Nom de la pièce"
-									value={part.name}
-									onChange={(e) =>
-										handlePartChange(index, "name", e.target.value)
-									}
-									className="flex-1"
-								/>
-								<Input
-									placeholder="Prix"
-									type="number"
-									step="0.01"
-									value={part.price}
-									onChange={(e) =>
-										handlePartChange(index, "price", e.target.value)
-									}
-									className="w-20"
-								/>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onClick={() => handleRemovePart(index)}
-								>
-									✕
-								</Button>
-							</div>
-						))}
-					</div>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={handleAddPart}
-						className="w-full"
-					>
-						+ Ajouter une pièce
-					</Button>
-				</div>
-
-				{/* Prix total */}
-				<div className="space-y-2">
-					<Label htmlFor="totalPrice">Prix total *</Label>
-					<Input
-						id="totalPrice"
-						type="number"
-						step="0.01"
-						placeholder="0.00"
-						value={formData.totalPrice}
-						onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
-						required
-					/>
-				</div>
-
-				{/* Boutons */}
-				<div className="flex gap-2 pt-4">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={onClose}
-						disabled={isLoading}
-						className="flex-1"
-					>
-						Annuler
-					</Button>
-					<Button type="submit" disabled={isLoading} className="flex-1">
-						{isLoading ? "Création..." : "Créer"}
-					</Button>
-				</div>
-			</form>
-		</DialogContent>
 	);
 }
